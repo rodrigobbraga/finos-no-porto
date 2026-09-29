@@ -9,18 +9,35 @@
     crossorigin="">
   <style>
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5}
+    body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5;color:#222}
     header{padding:16px;background:#fff;border-bottom:1px solid #ddd}
     header h1{margin:0;font-size:24px}
     header p{margin:6px 0 0;color:#666;font-size:14px}
-    #map{width:100%;height:calc(100vh - 89px)}
+    .filters{display:flex;gap:10px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-bottom:1px solid #ddd}
+    .filter-group{display:flex;flex-direction:column;gap:4px}
+    .filter-group label{font-size:12px;color:#666}
+    .filter-group input,.filter-group select,.reset-button{height:38px;border:1px solid #ccc;border-radius:8px;padding:0 10px;background:#fff;font-size:14px}
+    .filter-group input{width:130px}
+    .filter-group select{min-width:160px}
+    .reset-button{margin-top:auto;cursor:pointer}
+    .reset-button:hover{background:#f2f2f2}
+    #map{width:100%;height:calc(100vh - 191px)}
     .popup-title{font-weight:bold;font-size:17px;margin-bottom:8px}
     .popup-price{font-size:20px;font-weight:bold;margin-bottom:5px}
     .popup-info{color:#555;font-size:14px;margin-bottom:4px}
     .popup-updated{color:#777;font-size:12px;margin-top:8px}
-    .status{padding:10px 16px;background:#fff3cd;color:#664d03;font-size:14px;border-bottom:1px solid #ddd}
+    .status{padding:9px 16px;background:#fff3cd;color:#664d03;font-size:14px;border-bottom:1px solid #ddd}
     .status.error{background:#f8d7da;color:#842029}
     .hidden{display:none}
+    @media(max-width:600px){
+      header{padding:14px}
+      header h1{font-size:21px}
+      .filters{padding:10px}
+      .filter-group{flex:1;min-width:140px}
+      .filter-group input,.filter-group select{width:100%}
+      .reset-button{width:100%;margin-top:4px}
+      #map{height:calc(100vh - 248px)}
+    }
   </style>
 </head>
 <body>
@@ -28,6 +45,21 @@
     <h1>Finos no Porto</h1>
     <p>Encontra e compara finos no Porto</p>
   </header>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label for="precoMax">Preço máximo</label>
+      <input id="precoMax" type="number" min="0" step="0.10" placeholder="Ex.: 1,50">
+    </div>
+    <div class="filter-group">
+      <label for="zona">Zona</label>
+      <select id="zona">
+        <option value="">Todas as zonas</option>
+      </select>
+    </div>
+    <button id="limparFiltros" class="reset-button" type="button">Limpar filtros</button>
+  </div>
+
   <div id="status" class="status">A carregar os bares...</div>
   <div id="map"></div>
 
@@ -36,14 +68,21 @@
     crossorigin=""></script>
 
   <script>
-    const API_URL='https://script.google.com/macros/s/AKfycbwFt-7PYWvu8S5S129T_YDVPxcBwnCCQM3oueH1dddZmvgZJTJdo_T1dX-5w60wzwahCQ/exec';
+    const API_URL='COLOCA_AQUI_A_URL_DO_TEU_APPS_SCRIPT';
     const map=L.map('map').setView([41.1579,-8.6291],13);
+
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
       maxZoom:19,
       attribution:'&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     const statusElement=document.getElementById('status');
+    const precoMaxElement=document.getElementById('precoMax');
+    const zonaElement=document.getElementById('zona');
+    const limparFiltrosElement=document.getElementById('limparFiltros');
+
+    let todosOsBares=[];
+    let markersLayer=L.layerGroup().addTo(map);
 
     function escapeHtml(value){
       if(value===null||value===undefined)return '';
@@ -114,59 +153,127 @@
       `;
     }
 
+    function preencherZonas(){
+      const zonas=[...new Set(
+        todosOsBares
+          .map(bar=>String(bar.zona||'').trim())
+          .filter(Boolean)
+      )].sort((a,b)=>a.localeCompare(b,'pt'));
+
+      zonaElement.innerHTML='<option value="">Todas as zonas</option>';
+
+      zonas.forEach(zona=>{
+        const option=document.createElement('option');
+        option.value=zona;
+        option.textContent=zona;
+        zonaElement.appendChild(option);
+      });
+    }
+
+    function obterBaresFiltrados(){
+      const precoMaxTexto=precoMaxElement.value.replace(',','.');
+      const precoMax=precoMaxTexto===''?null:Number(precoMaxTexto);
+      const zonaSelecionada=zonaElement.value;
+
+      return todosOsBares.filter(bar=>{
+        const preco=Number(bar.preco_fino);
+
+        if(precoMax!==null&&Number.isFinite(precoMax)){
+          if(!Number.isFinite(preco)||preco>precoMax)return false;
+        }
+
+        if(zonaSelecionada&&String(bar.zona)!==zonaSelecionada){
+          return false;
+        }
+
+        return true;
+      });
+    }
+
+    function mostrarBares(){
+      markersLayer.clearLayers();
+
+      const baresFiltrados=obterBaresFiltrados();
+      const markers=[];
+
+      baresFiltrados.forEach(bar=>{
+        const latitude=Number(bar.latitude);
+        const longitude=Number(bar.longitude);
+
+        if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
+
+        const marker=L.marker([latitude,longitude]);
+        marker.bindPopup(createPopupContent(bar));
+        marker.addTo(markersLayer);
+        markers.push(marker);
+      });
+
+      if(markers.length>0){
+        const group=L.featureGroup(markers);
+        map.fitBounds(group.getBounds(),{
+          padding:[40,40],
+          maxZoom:15
+        });
+      }else{
+        map.setView([41.1579,-8.6291],13);
+      }
+
+      statusElement.classList.remove('error','hidden');
+      statusElement.textContent=
+        baresFiltrados.length===1
+          ? '1 bar encontrado'
+          : `${baresFiltrados.length} bares encontrados`;
+
+      if(baresFiltrados.length>=0){
+        setTimeout(()=>{
+          statusElement.classList.add('hidden');
+        },1500);
+      }
+    }
+
     async function carregarBares(){
       try{
         statusElement.classList.remove('error','hidden');
         statusElement.textContent='A carregar os bares...';
 
         const response=await fetch(API_URL);
-        if(!response.ok)throw new Error(`Erro HTTP ${response.status}`);
+
+        if(!response.ok){
+          throw new Error(`Erro HTTP ${response.status}`);
+        }
 
         const data=await response.json();
-        if(!data.sucesso)throw new Error(data.erro||'A API devolveu um erro.');
-        if(!Array.isArray(data.bares))throw new Error('A resposta da API não contém uma lista de bares.');
 
-        const markers=[];
-        let baresValidos=0;
-
-        data.bares.forEach(bar=>{
-          const latitude=Number(bar.latitude);
-          const longitude=Number(bar.longitude);
-
-          if(!Number.isFinite(latitude)||!Number.isFinite(longitude)){
-            console.warn('Bar ignorado por coordenadas inválidas:',bar);
-            return;
-          }
-
-          const marker=L.marker([latitude,longitude]).addTo(map);
-          marker.bindPopup(createPopupContent(bar));
-          markers.push(marker);
-          baresValidos++;
-        });
-
-        if(markers.length>0){
-          const group=L.featureGroup(markers);
-          map.fitBounds(group.getBounds(),{
-            padding:[40,40],
-            maxZoom:15
-          });
+        if(!data.sucesso){
+          throw new Error(data.erro||'A API devolveu um erro.');
         }
 
-        statusElement.textContent=`${baresValidos} bares carregados`;
-
-        if(baresValidos>0){
-          setTimeout(()=>{
-            statusElement.classList.add('hidden');
-          },2000);
+        if(!Array.isArray(data.bares)){
+          throw new Error('A resposta da API não contém uma lista de bares.');
         }
+
+        todosOsBares=data.bares;
+        preencherZonas();
+        mostrarBares();
 
         console.log('Dados recebidos da API:',data);
       }catch(error){
         console.error('Erro ao carregar os bares:',error);
+        statusElement.classList.remove('hidden');
         statusElement.classList.add('error');
-        statusElement.textContent='Não foi possível carregar os bares. Verifica a ligação à API.';
+        statusElement.textContent=
+          'Não foi possível carregar os bares. Verifica a ligação à API.';
       }
     }
+
+    precoMaxElement.addEventListener('input',mostrarBares);
+    zonaElement.addEventListener('change',mostrarBares);
+
+    limparFiltrosElement.addEventListener('click',()=>{
+      precoMaxElement.value='';
+      zonaElement.value='';
+      mostrarBares();
+    });
 
     carregarBares();
   </script>
