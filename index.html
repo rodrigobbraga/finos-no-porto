@@ -35,6 +35,8 @@
     .popup-price{font-size:20px;font-weight:bold;margin-bottom:5px}
     .popup-info{color:#555;font-size:14px;margin-bottom:4px}
     .popup-updated{color:#777;font-size:12px;margin-top:8px}
+    .popup-map-link{display:block;margin-top:12px;padding-top:12px;border-top:1px solid #eee;color:#1a73e8;font-size:13px;font-weight:600;text-decoration:none}
+    .popup-map-link:hover{text-decoration:underline}
 
     .leaflet-popup-content-wrapper{border-radius:12px}
     .leaflet-popup-content{margin:14px;max-width:280px}
@@ -58,6 +60,7 @@
       .popup-price{font-size:18px;margin-bottom:4px}
       .popup-info{font-size:12px;margin-bottom:3px}
       .popup-updated{font-size:11px;margin-top:7px}
+      .popup-map-link{font-size:12px;margin-top:10px;padding-top:10px}
       .price-label{font-size:11px;padding:3px 6px}
     }
   </style>
@@ -187,6 +190,17 @@
       });
     }
 
+    function createGoogleMapsUrl(bar){
+      const placeId=String(bar.google_place_id||'').trim();
+      const nome=String(bar.nome||'').trim();
+
+      if(!placeId)return '';
+
+      const query=encodeURIComponent(nome||'Porto');
+
+      return `https://www.google.com/maps/search/?api=1&query=${query}&query_place_id=${encodeURIComponent(placeId)}`;
+    }
+
     function createPopupContent(bar){
       const nome=escapeHtml(bar.nome);
       const marca=escapeHtml(bar.marca_cerveja);
@@ -197,6 +211,11 @@
       const tamanho=Number(bar.tamanho_cl);
       const precoLitro=formatPricePerLiter(bar.preco_litro);
       const atualizado=formatUpdatedText(bar.atualizado_em);
+      const googleMapsUrl=createGoogleMapsUrl(bar);
+
+      const googleMapsLink=googleMapsUrl
+        ? `<a class="popup-map-link" href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer">Ver no Google Maps →</a>`
+        : '';
 
       return `
         <div class="popup">
@@ -207,6 +226,7 @@
           <div class="popup-info">${morada}</div>
           <div class="popup-info">${freguesia} · ${zona}</div>
           <div class="popup-updated">${atualizado}</div>
+          ${googleMapsLink}
         </div>
       `;
     }
