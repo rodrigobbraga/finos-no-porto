@@ -38,6 +38,19 @@
     .popup-map-link{display:block;margin-top:12px;padding-top:12px;border-top:1px solid #eee;color:#1a73e8;font-size:13px;font-weight:600;text-decoration:none}
     .popup-map-link:hover{text-decoration:underline}
 
+    .feedback{margin-top:13px;padding-top:12px;border-top:1px solid #eee}
+    .feedback-question{font-size:13px;font-weight:600;color:#333;margin-bottom:9px}
+    .feedback-buttons{display:flex;gap:8px}
+    .feedback-button{flex:1;height:34px;border:1px solid #ccc;border-radius:7px;background:#fff;font-size:13px;font-weight:600;cursor:pointer}
+    .feedback-button:hover{background:#f5f5f5}
+    .feedback-no{color:#444}
+    .feedback-form{display:none;margin-top:9px}
+    .feedback-form.open{display:flex;gap:7px}
+    .feedback-input{flex:1;min-width:0;height:34px;border:1px solid #ccc;border-radius:7px;padding:0 9px;font-size:13px}
+    .feedback-send{height:34px;border:1px solid #ccc;border-radius:7px;background:#222;color:#fff;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer}
+    .feedback-message{display:none;margin-top:9px;font-size:12px;color:#555}
+    .feedback-message.visible{display:block}
+
     .leaflet-popup-content-wrapper{border-radius:12px}
     .leaflet-popup-content{margin:14px;max-width:280px}
 
@@ -61,6 +74,10 @@
       .popup-info{font-size:12px;margin-bottom:3px}
       .popup-updated{font-size:11px;margin-top:7px}
       .popup-map-link{font-size:12px;margin-top:10px;padding-top:10px}
+      .feedback-question{font-size:12px}
+      .feedback-button{font-size:12px}
+      .feedback-input{font-size:12px}
+      .feedback-send{font-size:12px}
       .price-label{font-size:11px;padding:3px 6px}
     }
   </style>
@@ -72,9 +89,7 @@
   </header>
 
   <div class="filter-toggle">
-    <button id="mostrarFiltros" class="filter-button" type="button" aria-expanded="false">
-      Filtros
-    </button>
+    <button id="mostrarFiltros" class="filter-button" type="button" aria-expanded="false">Filtros</button>
   </div>
 
   <div id="filters" class="filters">
@@ -99,7 +114,7 @@
     crossorigin=""></script>
 
   <script>
-    const API_URL='https://script.google.com/macros/s/AKfycbwFt-7PYWvu8S5S129T_YDVPxcBwnCCQM3oueH1dddZmvgZJTJdo_T1dX-5w60wzwahCQ/exec';
+    const API_URL='https://script.google.com/macros/s/AKfycbyHQkcPVCpXyEhPKALGftxIbviZwqGjCckN-oj8Oz5F65iAmNNHeZYWhUwjXxaDD9uTyQ/exec';
     const map=L.map('map').setView([41.1579,-8.6291],13);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -177,11 +192,9 @@
         html:`
           <div class="price-marker">
             <div class="price-label">${text}</div>
-            <img
-              class="blue-pin"
+            <img class="blue-pin"
               src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
-              alt=""
-            >
+              alt="">
           </div>
         `,
         iconSize:[58,72],
@@ -201,21 +214,122 @@
       return `https://www.google.com/maps/search/?api=1&query=${query}&query_place_id=${encodeURIComponent(placeId)}`;
     }
 
+    async function enviarFeedback(barId,tamanho,tipo,precoReportado=null){
+      const params=new URLSearchParams();
+      params.append('bar_id',String(barId));
+      params.append('tamanho_cl',String(tamanho));
+      params.append('tipo',tipo);
+
+      if(precoReportado!==null){
+        params.append('preco_reportado',String(precoReportado));
+      }
+
+      const response=await fetch(API_URL,{
+        method:'POST',
+        body:params
+      });
+
+      if(!response.ok){
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+
+      const data=await response.json();
+
+      if(!data.sucesso){
+        throw new Error(data.erro||'Não foi possível enviar o feedback.');
+      }
+
+      return data;
+    }
+
+    function configurarFeedback(popupElement,bar){
+      const feedback=popupElement.querySelector('.feedback');
+      if(!feedback)return;
+
+      const yesButton=feedback.querySelector('.feedback-yes');
+      const noButton=feedback.querySelector('.feedback-no');
+      const form=feedback.querySelector('.feedback-form');
+      const input=feedback.querySelector('.feedback-input');
+      const sendButton=feedback.querySelector('.feedback-send');
+      const message=feedback.querySelector('.feedback-message');
+
+      function mostrarMensagem(texto){
+        message.textContent=texto;
+        message.classList.add('visible');
+      }
+
+      yesButton.addEventListener('click',async()=>{
+        yesButton.disabled=true;
+        noButton.disabled=true;
+
+        try{
+          await enviarFeedback(
+            bar.bar_id,
+            Number(bar.tamanho_cl),
+            'confirmacao'
+          );
+
+          mostrarMensagem('✓ Obrigado! Preço confirmado.');
+          bar.atualizado_em=new Date().toISOString().split('T')[0];
+          popupElement.querySelector('.popup-updated').textContent='Atualizado hoje';
+        }catch(error){
+          console.error('Erro ao confirmar preço:',error);
+          yesButton.disabled=false;
+          noButton.disabled=false;
+          mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+        }
+      });
+
+      noButton.addEventListener('click',()=>{
+        noButton.disabled=true;
+        form.classList.add('open');
+        input.focus();
+      });
+
+      sendButton.addEventListener('click',async()=>{
+        const preco=input.value.replace(',','.');
+        const valor=Number(preco);
+
+        if(!Number.isFinite(valor)||valor<=0){
+          input.focus();
+          return;
+        }
+
+        sendButton.disabled=true;
+        input.disabled=true;
+
+        try{
+          await enviarFeedback(
+            bar.bar_id,
+            Number(bar.tamanho_cl),
+            'alteracao',
+            valor
+          );
+
+          yesButton.disabled=true;
+          noButton.disabled=true;
+          form.classList.remove('open');
+
+          mostrarMensagem('✓ Obrigado! Vamos verificar o novo preço.');
+        }catch(error){
+          console.error('Erro ao enviar alteração:',error);
+          sendButton.disabled=false;
+          input.disabled=false;
+          mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+        }
+      });
+    }
+
     function createPopupContent(bar){
       const nome=escapeHtml(bar.nome);
       const marca=escapeHtml(bar.marca_cerveja);
       const morada=escapeHtml(bar.morada);
-      const freguesia=escapeHtml(bar.freguesia);
       const zona=escapeHtml(bar.zona);
       const preco=formatPrice(bar.preco_fino);
       const tamanho=Number(bar.tamanho_cl);
       const precoLitro=formatPricePerLiter(bar.preco_litro);
       const atualizado=formatUpdatedText(bar.atualizado_em);
       const googleMapsUrl=createGoogleMapsUrl(bar);
-
-      const googleMapsLink=googleMapsUrl
-        ? `<a class="popup-map-link" href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer">Ver no Google Maps →</a>`
-        : '';
 
       return `
         <div class="popup">
@@ -224,9 +338,26 @@
           <div class="popup-info">${tamanho} cl · ${marca}</div>
           <div class="popup-info">${precoLitro}</div>
           <div class="popup-info">${morada}</div>
-          <div class="popup-info">${freguesia} · ${zona}</div>
+          <div class="popup-info">${zona}</div>
           <div class="popup-updated">${atualizado}</div>
-          ${googleMapsLink}
+
+          ${googleMapsUrl
+            ? `<a class="popup-map-link" href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer">Ver no Google Maps →</a>`
+            : ''
+          }
+
+          <div class="feedback">
+            <div class="feedback-question">O preço está correto?</div>
+            <div class="feedback-buttons">
+              <button class="feedback-button feedback-yes" type="button">Sim</button>
+              <button class="feedback-button feedback-no" type="button">Não</button>
+            </div>
+            <div class="feedback-form">
+              <input class="feedback-input" type="number" min="0.01" step="0.01" placeholder="Novo preço">
+              <button class="feedback-send" type="button">Enviar</button>
+            </div>
+            <div class="feedback-message"></div>
+          </div>
         </div>
       `;
     }
@@ -286,6 +417,15 @@
         );
 
         marker.bindPopup(createPopupContent(bar));
+
+        marker.on('popupopen',event=>{
+          const popupElement=event.popup.getElement();
+
+          if(popupElement){
+            configurarFeedback(popupElement,bar);
+          }
+        });
+
         marker.addTo(markersLayer);
         markers.push(marker);
       });
