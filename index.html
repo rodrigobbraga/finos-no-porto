@@ -36,9 +36,13 @@ header p{margin:6px 0 0;color:#666;font-size:14px}
 .popup-map-link:hover{text-decoration:underline}
 .feedback{margin-top:13px;padding-top:12px;border-top:1px solid #eee}
 .feedback-question{font-size:13px;font-weight:600;color:#333;margin-bottom:9px}
-.feedback-form{display:flex;flex-direction:column;gap:7px}
-.feedback-input,.feedback-brand{width:100%;height:36px;border:1px solid #ccc;border-radius:7px;padding:0 9px;font-size:13px;background:#fff}
-.feedback-send{height:36px;border:0;border-radius:7px;background:#222;color:#fff;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer}
+.feedback-buttons{display:flex;gap:8px}
+.feedback-button{flex:1;height:34px;border:1px solid #ccc;border-radius:7px;background:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.feedback-button:hover{background:#f5f5f5}
+.feedback-form{display:none;margin-top:9px;flex-direction:column;gap:7px}
+.feedback-form.open{display:flex}
+.feedback-input,.feedback-brand{width:100%;height:34px;border:1px solid #ccc;border-radius:7px;padding:0 9px;font-size:13px;background:#fff}
+.feedback-send{height:34px;border:1px solid #ccc;border-radius:7px;background:#222;color:#fff;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer}
 .feedback-send:disabled{opacity:.6;cursor:default}
 .feedback-message{display:none;margin-top:9px;font-size:12px;color:#555;font-weight:600}
 .feedback-message.visible{display:block}
@@ -64,6 +68,7 @@ header p{font-size:13px}
 .popup-updated{font-size:11px;margin-top:7px}
 .popup-map-link{font-size:12px;margin-top:10px;padding-top:10px}
 .feedback-question{font-size:12px}
+.feedback-button{font-size:12px}
 .feedback-input,.feedback-brand,.feedback-send{font-size:12px}
 .price-label{font-size:11px;padding:3px 6px}
 }
@@ -84,12 +89,14 @@ header p{font-size:13px}
 <label for="precoMax">Preço máximo</label>
 <input id="precoMax" type="number" min="0" step="0.10" placeholder="Ex.: 1,50">
 </div>
+
 <div class="filter-group">
 <label for="zona">Zona</label>
 <select id="zona">
 <option value="">Todas as zonas</option>
 </select>
 </div>
+
 <button id="limparFiltros" class="reset-button" type="button">Limpar filtros</button>
 </div>
 
@@ -128,77 +135,68 @@ function escapeHtml(value){
     .replace(/'/g,'&#039;');
 }
 
-function normalizarPreco(value){
-  if(value===null||value===undefined||value==='')return null;
-  const numero=Number(String(value).replace(',','.').replace('€','').trim());
-  return Number.isFinite(numero)&&numero>0?Math.round(numero*100)/100:null;
-}
-
 function formatPrice(price){
-  const number=normalizarPreco(price);
-  if(number===null)return 'Preço por confirmar';
+  const number=Number(price);
+  if(!Number.isFinite(number))return 'Preço não disponível';
+
   return number.toLocaleString('pt-PT',{
     style:'currency',
-    currency:'EUR',
-    minimumFractionDigits:2
+    currency:'EUR'
   });
 }
 
 function formatPricePerLiter(price){
-  const number=normalizarPreco(price);
-  if(number===null)return '';
+  const number=Number(price);
+  if(!Number.isFinite(number))return '';
+
   return number.toLocaleString('pt-PT',{
     style:'currency',
-    currency:'EUR',
-    minimumFractionDigits:2
+    currency:'EUR'
   })+'/L';
 }
 
 function daysSince(dateValue){
   if(!dateValue)return null;
+
   const date=new Date(dateValue);
+
   if(Number.isNaN(date.getTime()))return null;
-  return Math.floor((Date.now()-date.getTime())/(1000*60*60*24));
+
+  return Math.floor(
+    (Date.now()-date.getTime())/(1000*60*60*24)
+  );
 }
 
 function formatUpdatedText(dateValue){
   const days=daysSince(dateValue);
+
   if(days===null)return 'Data de atualização desconhecida';
   if(days<0)return 'Atualização futura';
   if(days===0)return 'Atualizado hoje';
   if(days===1)return 'Atualizado há 1 dia';
+
   return `Atualizado há ${days} dias`;
 }
 
 function createPriceIcon(price){
-  const number=normalizarPreco(price);
+  const number=Number(price);
 
-  if(number===null){
-    return L.divIcon({
-      className:'',
-      html:`
-        <div class="price-marker">
-          <img class="blue-pin" src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" alt="">
-        </div>
-      `,
-      iconSize:[58,72],
-      iconAnchor:[29,72],
-      popupAnchor:[0,-72]
-    });
-  }
-
-  const text=number.toLocaleString('pt-PT',{
-    style:'currency',
-    currency:'EUR',
-    minimumFractionDigits:2
-  });
+  const text=Number.isFinite(number)
+    ? number.toLocaleString('pt-PT',{
+        style:'currency',
+        currency:'EUR',
+        minimumFractionDigits:2
+      })
+    : '—';
 
   return L.divIcon({
     className:'',
     html:`
       <div class="price-marker">
         <div class="price-label">${text}</div>
-        <img class="blue-pin" src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" alt="">
+        <img class="blue-pin"
+          src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
+          alt="">
       </div>
     `,
     iconSize:[58,72],
@@ -216,12 +214,20 @@ function createGoogleMapsUrl(bar){
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nome||'Porto')}&query_place_id=${encodeURIComponent(placeId)}`;
 }
 
-async function enviarFeedback(barId,precoReportado,marcaReportada){
+async function enviarFeedback(barId,tamanho,tipo,precoReportado=null,marcaReportada=null){
   const params=new URLSearchParams();
 
   params.append('bar_id',String(barId));
-  params.append('preco_reportado',String(precoReportado));
-  params.append('marca_reportada',String(marcaReportada));
+  params.append('tamanho_cl',String(tamanho));
+  params.append('tipo',tipo);
+
+  if(precoReportado!==null){
+    params.append('preco_reportado',String(precoReportado));
+  }
+
+  if(marcaReportada!==null){
+    params.append('marca_reportada',String(marcaReportada));
+  }
 
   const response=await fetch(API_URL,{
     method:'POST',
@@ -243,24 +249,77 @@ async function enviarFeedback(barId,precoReportado,marcaReportada){
 
 function configurarFeedback(popupElement,bar,marker){
   const feedback=popupElement.querySelector('.feedback');
+
   if(!feedback||feedback.dataset.ready==='1')return;
 
   feedback.dataset.ready='1';
 
+  const yesButton=feedback.querySelector('.feedback-yes');
+  const noButton=feedback.querySelector('.feedback-no');
   const form=feedback.querySelector('.feedback-form');
   const input=feedback.querySelector('.feedback-input');
   const brand=feedback.querySelector('.feedback-brand');
   const sendButton=feedback.querySelector('.feedback-send');
   const message=feedback.querySelector('.feedback-message');
 
+  function mostrarMensagem(texto){
+    message.textContent=texto;
+    message.classList.add('visible');
+  }
+
+  function fecharPopupAutomaticamente(){
+    setTimeout(()=>{
+      marker.closePopup();
+    },2000);
+  }
+
+  yesButton.addEventListener('click',async()=>{
+    yesButton.disabled=true;
+    noButton.disabled=true;
+
+    try{
+      await enviarFeedback(
+        bar.bar_id,
+        20,
+        'confirmacao'
+      );
+
+      mostrarMensagem('✓ Obrigado! Preço confirmado.');
+
+      const updatedElement=popupElement.querySelector('.popup-updated');
+
+      if(updatedElement){
+        updatedElement.textContent='Atualizado hoje';
+      }
+
+      bar.atualizado_em=new Date().toISOString().split('T')[0];
+
+      fecharPopupAutomaticamente();
+
+    }catch(error){
+      console.error('Erro ao confirmar preço:',error);
+
+      yesButton.disabled=false;
+      noButton.disabled=false;
+
+      mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+    }
+  });
+
+  noButton.addEventListener('click',()=>{
+    noButton.disabled=true;
+    form.classList.add('open');
+    input.focus();
+  });
+
   form.addEventListener('submit',async event=>{
     event.preventDefault();
 
     const precoTexto=input.value.replace(',','.');
-    const preco=Number(precoTexto);
+    const valor=Number(precoTexto);
     const marca=brand.value;
 
-    if(!Number.isFinite(preco)||preco<=0){
+    if(!Number.isFinite(valor)||valor<=0){
       input.focus();
       return;
     }
@@ -277,42 +336,55 @@ function configurarFeedback(popupElement,bar,marker){
     try{
       const resultado=await enviarFeedback(
         bar.bar_id,
-        preco,
+        20,
+        'alteracao',
+        valor,
         marca
       );
 
-      message.textContent='✓ Obrigado pela ajuda!';
-      message.classList.add('visible');
+      yesButton.disabled=true;
+
+      form.classList.remove('open');
 
       if(resultado.validado){
+        mostrarMensagem('✓ Obrigado! O preço foi atualizado.');
+
         bar.preco_fino=resultado.preco;
         bar.marca_cerveja=resultado.marca;
         bar.tamanho_cl=20;
         bar.preco_litro=resultado.preco/0.20;
         bar.atualizado_em=new Date().toISOString().split('T')[0];
+      }else{
+        mostrarMensagem('✓ Obrigado! Vamos verificar o novo preço.');
       }
 
-      setTimeout(()=>{
-        marker.closePopup();
-      },2000);
+      fecharPopupAutomaticamente();
 
     }catch(error){
-      console.error('Erro ao enviar feedback:',error);
-      message.textContent='Não foi possível enviar. Tenta novamente.';
-      message.classList.add('visible');
+      console.error('Erro ao enviar alteração:',error);
+
       sendButton.disabled=false;
       input.disabled=false;
       brand.disabled=false;
+
+      mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+    }
+  });
+
+  input.addEventListener('keydown',event=>{
+    if(event.key==='Enter'){
+      form.requestSubmit();
     }
   });
 }
 
 function createPopupContent(bar){
-  const nome=escapeHtml(bar.nome||'Estabelecimento');
+  const nome=escapeHtml(bar.nome);
   const marca=escapeHtml(bar.marca_cerveja||'Marca por confirmar');
-  const morada=escapeHtml(bar.morada||'Morada não indicada');
-  const zona=escapeHtml(bar.zona||'Zona não indicada');
-  const preco=normalizarPreco(bar.preco_fino);
+  const morada=escapeHtml(bar.morada||'');
+  const zona=escapeHtml(bar.zona||'');
+  const preco=Number(bar.preco_fino);
+  const tamanho=20;
   const precoLitro=formatPricePerLiter(bar.preco_litro);
   const atualizado=formatUpdatedText(bar.atualizado_em);
   const googleMapsUrl=createGoogleMapsUrl(bar);
@@ -322,10 +394,15 @@ function createPopupContent(bar){
       <div class="popup-title">${nome}</div>
 
       <div class="popup-price">
-        ${preco===null?'Preço por confirmar':formatPrice(preco)}
+        ${Number.isFinite(preco)&&preco>0
+          ? formatPrice(preco)
+          : 'Preço por confirmar'
+        }
       </div>
 
-      <div class="popup-info">20 cl · ${marca}</div>
+      <div class="popup-info">
+        ${tamanho} cl · ${marca}
+      </div>
 
       ${precoLitro
         ? `<div class="popup-info">${precoLitro}</div>`
@@ -333,10 +410,14 @@ function createPopupContent(bar){
       }
 
       <div class="popup-info">${morada}</div>
+
       <div class="popup-info">${zona}</div>
 
       <div class="popup-updated">
-        ${preco===null?'Preço ainda por confirmar':atualizado}
+        ${Number.isFinite(preco)&&preco>0
+          ? atualizado
+          : 'Preço ainda por confirmar'
+        }
       </div>
 
       ${googleMapsUrl
@@ -345,7 +426,12 @@ function createPopupContent(bar){
       }
 
       <div class="feedback">
-        <div class="feedback-question">Sabes o preço deste fino?</div>
+        <div class="feedback-question">O preço está correto?</div>
+
+        <div class="feedback-buttons">
+          <button class="feedback-button feedback-yes" type="button">Sim</button>
+          <button class="feedback-button feedback-no" type="button">Não</button>
+        </div>
 
         <form class="feedback-form">
           <input
@@ -354,7 +440,7 @@ function createPopupContent(bar){
             min="0.01"
             step="0.01"
             inputmode="decimal"
-            placeholder="Preço (€)"
+            placeholder="Novo preço"
             required
           >
 
@@ -385,8 +471,10 @@ function preencherZonas(){
 
   zonas.forEach(zona=>{
     const option=document.createElement('option');
+
     option.value=zona;
     option.textContent=zona;
+
     zonaElement.appendChild(option);
   });
 }
@@ -397,13 +485,15 @@ function obterBaresFiltrados(){
   const zonaSelecionada=zonaElement.value;
 
   return todosOsBares.filter(bar=>{
-    const preco=normalizarPreco(bar.preco_fino);
+    const preco=Number(bar.preco_fino);
 
     if(precoMax!==null&&Number.isFinite(precoMax)){
-      if(preco===null||preco>precoMax)return false;
+      if(!Number.isFinite(preco)||preco>precoMax){
+        return false;
+      }
     }
 
-    if(zonaSelecionada&&String(bar.zona||'')!==zonaSelecionada){
+    if(zonaSelecionada&&String(bar.zona)!==zonaSelecionada){
       return false;
     }
 
@@ -421,7 +511,9 @@ function mostrarBares(){
     const latitude=Number(bar.latitude);
     const longitude=Number(bar.longitude);
 
-    if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
+    if(!Number.isFinite(latitude)||!Number.isFinite(longitude)){
+      return;
+    }
 
     const marker=L.marker(
       [latitude,longitude],
@@ -429,8 +521,7 @@ function mostrarBares(){
     );
 
     marker.bindPopup(
-      createPopupContent(bar),
-      {maxWidth:300}
+      createPopupContent(bar)
     );
 
     marker.on('popupopen',event=>{
@@ -452,6 +543,7 @@ function mostrarBares(){
       padding:[40,40],
       maxZoom:15
     });
+
   }else{
     map.setView([41.1579,-8.6291],13);
   }
@@ -498,8 +590,10 @@ async function carregarBares(){
 
   }catch(error){
     console.error('Erro ao carregar os bares:',error);
+
     statusElement.classList.remove('hidden');
     statusElement.classList.add('error');
+
     statusElement.textContent='Não foi possível carregar os bares. Verifica a ligação à API.';
   }
 }
@@ -507,8 +601,13 @@ async function carregarBares(){
 mostrarFiltrosElement.addEventListener('click',()=>{
   const aberto=filtersElement.classList.toggle('open');
 
-  mostrarFiltrosElement.setAttribute('aria-expanded',aberto);
-  mostrarFiltrosElement.textContent=aberto?'Fechar filtros':'Filtros';
+  mostrarFiltrosElement.setAttribute(
+    'aria-expanded',
+    aberto
+  );
+
+  mostrarFiltrosElement.textContent=
+    aberto?'Fechar filtros':'Filtros';
 
   setTimeout(()=>{
     map.invalidateSize();
