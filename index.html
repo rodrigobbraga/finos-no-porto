@@ -1,520 +1,159 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finos no Porto</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin="">
-  <style>
-    *{box-sizing:border-box}
-    html,body{margin:0;width:100%;height:100%;font-family:Arial,sans-serif;background:#f5f5f5;color:#222}
-    body{display:flex;flex-direction:column}
-    header{padding:16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
-    header h1{margin:0;font-size:24px}
-    header p{margin:6px 0 0;color:#666;font-size:14px}
-    .filter-toggle{padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
-    .filter-button{height:38px;border:1px solid #ccc;border-radius:8px;padding:0 14px;background:#fff;font-size:14px;cursor:pointer}
-    .filter-button:hover{background:#f2f2f2}
-    .filters{display:none;gap:10px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
-    .filters.open{display:flex}
-    .filter-group{display:flex;flex-direction:column;gap:4px}
-    .filter-group label{font-size:12px;color:#666}
-    .filter-group input,.filter-group select,.reset-button{height:38px;border:1px solid #ccc;border-radius:8px;padding:0 10px;background:#fff;font-size:14px}
-    .filter-group input{width:130px}
-    .filter-group select{min-width:160px}
-    .reset-button{margin-top:auto;cursor:pointer}
-    .reset-button:hover{background:#f2f2f2}
-    .status{padding:9px 16px;background:#fff3cd;color:#664d03;font-size:14px;border-bottom:1px solid #ddd;flex-shrink:0}
-    .status.error{background:#f8d7da;color:#842029}
-    .hidden{display:none}
-    #map{width:100%;flex:1;min-height:0}
-    .popup-title{font-weight:bold;font-size:17px;margin-bottom:8px}
-    .popup-price{font-size:20px;font-weight:bold;margin-bottom:5px}
-    .popup-info{color:#555;font-size:14px;margin-bottom:4px}
-    .popup-updated{color:#777;font-size:12px;margin-top:8px}
-    .popup-map-link{display:block;margin-top:12px;padding-top:12px;border-top:1px solid #eee;color:#1a73e8;font-size:13px;font-weight:600;text-decoration:none}
-    .popup-map-link:hover{text-decoration:underline}
-    .feedback{margin-top:13px;padding-top:12px;border-top:1px solid #eee}
-    .feedback-question{font-size:13px;font-weight:600;color:#333;margin-bottom:9px}
-    .feedback-buttons{display:flex;gap:8px}
-    .feedback-button{flex:1;height:34px;border:1px solid #ccc;border-radius:7px;background:#fff;font-size:13px;font-weight:600;cursor:pointer}
-    .feedback-button:hover{background:#f5f5f5}
-    .feedback-form{display:none;margin-top:9px}
-    .feedback-form.open{display:flex;gap:7px}
-    .feedback-input{flex:1;min-width:0;height:34px;border:1px solid #ccc;border-radius:7px;padding:0 9px;font-size:13px}
-    .feedback-send{height:34px;border:1px solid #ccc;border-radius:7px;background:#222;color:#fff;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer}
-    .feedback-message{display:none;margin-top:9px;font-size:12px;color:#555;font-weight:600}
-    .feedback-message.visible{display:block}
-    .leaflet-popup-content-wrapper{border-radius:12px}
-    .leaflet-popup-content{margin:14px;max-width:280px}
-    .price-marker{position:relative;width:58px;height:72px}
-    .price-label{position:absolute;top:0;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #bbb;border-radius:6px;padding:4px 7px;font-size:12px;font-weight:700;color:#222;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:2}
-    .price-label:after{content:'';position:absolute;bottom:-5px;left:50%;width:8px;height:8px;background:#fff;border-right:1px solid #bbb;border-bottom:1px solid #bbb;transform:translateX(-50%) rotate(45deg)}
-    .blue-pin{position:absolute;width:25px;height:41px;left:50%;bottom:0;transform:translateX(-50%);z-index:1}
-    @media(max-width:600px){
-      header{padding:14px}
-      header h1{font-size:21px}
-      header p{font-size:13px}
-      .filter-toggle{padding:8px 10px}
-      .filters{padding:10px}
-      .filter-group{flex:1;min-width:140px}
-      .filter-group input,.filter-group select{width:100%}
-      .reset-button{width:100%;margin-top:4px}
-      .leaflet-popup-content{width:calc(100vw - 70px)!important;max-width:245px!important;margin:10px}
-      .popup-title{font-size:15px;margin-bottom:6px}
-      .popup-price{font-size:18px;margin-bottom:4px}
-      .popup-info{font-size:12px;margin-bottom:3px}
-      .popup-updated{font-size:11px;margin-top:7px}
-      .popup-map-link{font-size:12px;margin-top:10px;padding-top:10px}
-      .feedback-question{font-size:12px}
-      .feedback-button{font-size:12px}
-      .feedback-input{font-size:12px}
-      .feedback-send{font-size:12px}
-      .price-label{font-size:11px;padding:3px 6px}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Finos no Porto</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Arial,sans-serif;color:#222}body{display:flex;flex-direction:column}
+header{padding:14px 16px 10px;border-bottom:1px solid #eee;background:#fff;z-index:1000}
+header h1{margin:0;font-size:22px}header p{margin:3px 0 0;color:#666;font-size:13px}
+#controls{background:#fff;border-bottom:1px solid #eee;padding:8px 12px;z-index:999}
+#toggle-filters{border:1px solid #ddd;background:#fff;border-radius:8px;padding:8px 12px;font-weight:600;cursor:pointer}
+#filters{display:none;gap:8px;align-items:end;padding-top:8px;flex-wrap:wrap}
+.filter-group{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#555}
+.filter-group input,.filter-group select{height:36px;border:1px solid #ddd;border-radius:8px;padding:0 9px;background:#fff}
+#clear-filters{height:36px;border:1px solid #ddd;background:#f7f7f7;border-radius:8px;padding:0 12px;cursor:pointer}
+#status{font-size:12px;color:#777;margin:8px 2px 0}
+#map{flex:1;min-height:0}
+.popup{width:260px}.popup-title{font-weight:bold;font-size:17px;margin-bottom:8px}.popup-price{font-size:20px;font-weight:bold;margin-bottom:5px}.popup-info{color:#555;font-size:14px;margin-bottom:4px}.popup-updated{color:#777;font-size:12px;margin-top:8px}.popup-map-link{display:block;margin-top:12px;padding-top:12px;border-top:1px solid #eee;color:#1a73e8;font-size:13px;font-weight:600;text-decoration:none}
+.feedback{margin-top:14px;padding-top:12px;border-top:1px solid #eee}.feedback-title{font-size:13px;font-weight:600;margin-bottom:8px}.feedback-form{display:flex;flex-direction:column;gap:7px}.feedback-form input,.feedback-form select{width:100%;height:36px;border:1px solid #ddd;border-radius:7px;padding:0 9px;font-size:13px;background:#fff}.feedback-form button{height:36px;border:0;border-radius:7px;background:#222;color:#fff;font-weight:600;cursor:pointer}.feedback-status{font-size:12px;color:#444;margin-top:7px}
+.price-marker{position:relative;width:58px;height:72px}.blue-pin{position:absolute;left:17px;top:20px;width:25px;height:41px}.price-label{position:absolute;left:0;top:0;min-width:58px;background:#fff;border:1px solid #ddd;border-radius:7px;padding:3px 5px;text-align:center;font-size:11px;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+@media(max-width:600px){header h1{font-size:20px}#filters{display:none}.popup{width:calc(100vw - 70px);max-width:245px}.popup-title{font-size:16px}.popup-price{font-size:18px}.popup-info{font-size:13px}}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Finos no Porto</h1>
-    <p>Encontra e compara finos no Porto</p>
-  </header>
-
-  <div class="filter-toggle">
-    <button id="mostrarFiltros" class="filter-button" type="button" aria-expanded="false">Filtros</button>
-  </div>
-
-  <div id="filters" class="filters">
-    <div class="filter-group">
-      <label for="precoMax">Preço máximo</label>
-      <input id="precoMax" type="number" min="0" step="0.10" placeholder="Ex.: 1,50">
-    </div>
-    <div class="filter-group">
-      <label for="zona">Zona</label>
-      <select id="zona">
-        <option value="">Todas as zonas</option>
-      </select>
-    </div>
-    <button id="limparFiltros" class="reset-button" type="button">Limpar filtros</button>
-  </div>
-
-  <div id="status" class="status">A carregar os bares...</div>
-  <div id="map"></div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
-
-  <script>
-    const API_URL='https://script.google.com/macros/s/AKfycbyHQkcPVCpXyEhPKALGftxIbviZwqGjCckN-oj8Oz5F65iAmNNHeZYWhUwjXxaDD9uTyQ/exec';
-    const map=L.map('map').setView([41.1579,-8.6291],13);
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      maxZoom:19,
-      attribution:'&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const statusElement=document.getElementById('status');
-    const precoMaxElement=document.getElementById('precoMax');
-    const zonaElement=document.getElementById('zona');
-    const limparFiltrosElement=document.getElementById('limparFiltros');
-    const mostrarFiltrosElement=document.getElementById('mostrarFiltros');
-    const filtersElement=document.getElementById('filters');
-
-    let todosOsBares=[];
-    let markersLayer=L.layerGroup().addTo(map);
-
-    function escapeHtml(value){
-      if(value===null||value===undefined)return '';
-      return String(value)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')
-        .replace(/'/g,'&#039;');
-    }
-
-    function formatPrice(price){
-      const number=Number(price);
-      if(!Number.isFinite(number))return 'Preço não disponível';
-      return number.toLocaleString('pt-PT',{
-        style:'currency',
-        currency:'EUR'
-      });
-    }
-
-    function formatPricePerLiter(price){
-      const number=Number(price);
-      if(!Number.isFinite(number))return '';
-      return number.toLocaleString('pt-PT',{
-        style:'currency',
-        currency:'EUR'
-      })+'/L';
-    }
-
-    function daysSince(dateValue){
-      if(!dateValue)return null;
-      const date=new Date(dateValue);
-      if(Number.isNaN(date.getTime()))return null;
-      const now=new Date();
-      return Math.floor((now.getTime()-date.getTime())/(1000*60*60*24));
-    }
-
-    function formatUpdatedText(dateValue){
-      const days=daysSince(dateValue);
-      if(days===null)return 'Data de atualização desconhecida';
-      if(days<0)return 'Atualização futura';
-      if(days===0)return 'Atualizado hoje';
-      if(days===1)return 'Atualizado há 1 dia';
-      return `Atualizado há ${days} dias`;
-    }
-
-    function createPriceIcon(price){
-      const number=Number(price);
-      const text=Number.isFinite(number)
-        ? number.toLocaleString('pt-PT',{
-            style:'currency',
-            currency:'EUR',
-            minimumFractionDigits:2
-          })
-        : '—';
-
-      return L.divIcon({
-        className:'',
-        html:`
-          <div class="price-marker">
-            <div class="price-label">${text}</div>
-            <img class="blue-pin"
-              src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
-              alt="">
-          </div>
-        `,
-        iconSize:[58,72],
-        iconAnchor:[29,72],
-        popupAnchor:[0,-72]
-      });
-    }
-
-    function createGoogleMapsUrl(bar){
-      const placeId=String(bar.google_place_id||'').trim();
-      const nome=String(bar.nome||'').trim();
-
-      if(!placeId)return '';
-
-      const query=encodeURIComponent(nome||'Porto');
-
-      return `https://www.google.com/maps/search/?api=1&query=${query}&query_place_id=${encodeURIComponent(placeId)}`;
-    }
-
-    async function enviarFeedback(barId,tamanho,tipo,precoReportado=null){
-      const params=new URLSearchParams();
-      params.append('bar_id',String(barId));
-      params.append('tamanho_cl',String(tamanho));
-      params.append('tipo',tipo);
-
-      if(precoReportado!==null){
-        params.append('preco_reportado',String(precoReportado));
-      }
-
-      const response=await fetch(API_URL,{
-        method:'POST',
-        body:params
-      });
-
-      if(!response.ok){
-        throw new Error(`Erro HTTP ${response.status}`);
-      }
-
-      const data=await response.json();
-
-      if(!data.sucesso){
-        throw new Error(data.erro||'Não foi possível enviar o feedback.');
-      }
-
-      return data;
-    }
-
-    function configurarFeedback(popupElement,bar,marker){
-      const feedback=popupElement.querySelector('.feedback');
-      if(!feedback)return;
-
-      const yesButton=feedback.querySelector('.feedback-yes');
-      const noButton=feedback.querySelector('.feedback-no');
-      const form=feedback.querySelector('.feedback-form');
-      const input=feedback.querySelector('.feedback-input');
-      const sendButton=feedback.querySelector('.feedback-send');
-      const message=feedback.querySelector('.feedback-message');
-
-      function mostrarMensagem(texto){
-        message.textContent=texto;
-        message.classList.add('visible');
-      }
-
-      function fecharPopupAutomaticamente(){
-        setTimeout(()=>{
-          marker.closePopup();
-        },2000);
-      }
-
-      yesButton.addEventListener('click',async()=>{
-        yesButton.disabled=true;
-        noButton.disabled=true;
-
-        try{
-          await enviarFeedback(
-            bar.bar_id,
-            Number(bar.tamanho_cl),
-            'confirmacao'
-          );
-
-          mostrarMensagem('✓ Obrigado! Preço confirmado.');
-
-          bar.atualizado_em=new Date().toISOString().split('T')[0];
-          popupElement.querySelector('.popup-updated').textContent='Atualizado hoje';
-
-          fecharPopupAutomaticamente();
-        }catch(error){
-          console.error('Erro ao confirmar preço:',error);
-          yesButton.disabled=false;
-          noButton.disabled=false;
-          mostrarMensagem('Não foi possível enviar. Tenta novamente.');
-        }
-      });
-
-      noButton.addEventListener('click',()=>{
-        noButton.disabled=true;
-        form.classList.add('open');
-        input.focus();
-      });
-
-      sendButton.addEventListener('click',async()=>{
-        const preco=input.value.replace(',','.');
-        const valor=Number(preco);
-
-        if(!Number.isFinite(valor)||valor<=0){
-          input.focus();
-          return;
-        }
-
-        sendButton.disabled=true;
-        input.disabled=true;
-
-        try{
-          await enviarFeedback(
-            bar.bar_id,
-            Number(bar.tamanho_cl),
-            'alteracao',
-            valor
-          );
-
-          yesButton.disabled=true;
-          noButton.disabled=true;
-          form.classList.remove('open');
-
-          mostrarMensagem('✓ Obrigado! Vamos verificar o novo preço.');
-
-          fecharPopupAutomaticamente();
-        }catch(error){
-          console.error('Erro ao enviar alteração:',error);
-          sendButton.disabled=false;
-          input.disabled=false;
-          mostrarMensagem('Não foi possível enviar. Tenta novamente.');
-        }
-      });
-
-      input.addEventListener('keydown',event=>{
-        if(event.key==='Enter'){
-          sendButton.click();
-        }
-      });
-    }
-
-    function createPopupContent(bar){
-      const nome=escapeHtml(bar.nome);
-      const marca=escapeHtml(bar.marca_cerveja);
-      const morada=escapeHtml(bar.morada);
-      const zona=escapeHtml(bar.zona);
-      const preco=formatPrice(bar.preco_fino);
-      const tamanho=Number(bar.tamanho_cl);
-      const precoLitro=formatPricePerLiter(bar.preco_litro);
-      const atualizado=formatUpdatedText(bar.atualizado_em);
-      const googleMapsUrl=createGoogleMapsUrl(bar);
-
-      return `
-        <div class="popup">
-          <div class="popup-title">${nome}</div>
-          <div class="popup-price">${preco}</div>
-          <div class="popup-info">${tamanho} cl · ${marca}</div>
-          <div class="popup-info">${precoLitro}</div>
-          <div class="popup-info">${morada}</div>
-          <div class="popup-info">${zona}</div>
-          <div class="popup-updated">${atualizado}</div>
-
-          ${googleMapsUrl
-            ? `<a class="popup-map-link" href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer">Ver no Google Maps →</a>`
-            : ''
-          }
-
-          <div class="feedback">
-            <div class="feedback-question">O preço está correto?</div>
-            <div class="feedback-buttons">
-              <button class="feedback-button feedback-yes" type="button">Sim</button>
-              <button class="feedback-button feedback-no" type="button">Não</button>
-            </div>
-
-            <div class="feedback-form">
-              <input class="feedback-input" type="number" min="0.01" step="0.01" placeholder="Novo preço">
-              <button class="feedback-send" type="button">Enviar</button>
-            </div>
-
-            <div class="feedback-message"></div>
-          </div>
-        </div>
-      `;
-    }
-
-    function preencherZonas(){
-      const zonas=[...new Set(
-        todosOsBares
-          .map(bar=>String(bar.zona||'').trim())
-          .filter(Boolean)
-      )].sort((a,b)=>a.localeCompare(b,'pt'));
-
-      zonaElement.innerHTML='<option value="">Todas as zonas</option>';
-
-      zonas.forEach(zona=>{
-        const option=document.createElement('option');
-        option.value=zona;
-        option.textContent=zona;
-        zonaElement.appendChild(option);
-      });
-    }
-
-    function obterBaresFiltrados(){
-      const precoMaxTexto=precoMaxElement.value.replace(',','.');
-      const precoMax=precoMaxTexto===''?null:Number(precoMaxTexto);
-      const zonaSelecionada=zonaElement.value;
-
-      return todosOsBares.filter(bar=>{
-        const preco=Number(bar.preco_fino);
-
-        if(precoMax!==null&&Number.isFinite(precoMax)){
-          if(!Number.isFinite(preco)||preco>precoMax)return false;
-        }
-
-        if(zonaSelecionada&&String(bar.zona)!==zonaSelecionada){
-          return false;
-        }
-
-        return true;
-      });
-    }
-
-    function mostrarBares(){
-      markersLayer.clearLayers();
-
-      const baresFiltrados=obterBaresFiltrados();
-      const markers=[];
-
-      baresFiltrados.forEach(bar=>{
-        const latitude=Number(bar.latitude);
-        const longitude=Number(bar.longitude);
-
-        if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
-
-        const marker=L.marker(
-          [latitude,longitude],
-          {icon:createPriceIcon(bar.preco_fino)}
-        );
-
-        marker.bindPopup(createPopupContent(bar));
-
-        marker.on('popupopen',event=>{
-          const popupElement=event.popup.getElement();
-
-          if(popupElement){
-            configurarFeedback(popupElement,bar,marker);
-          }
-        });
-
-        marker.addTo(markersLayer);
-        markers.push(marker);
-      });
-
-      if(markers.length>0){
-        const group=L.featureGroup(markers);
-        map.fitBounds(group.getBounds(),{
-          padding:[40,40],
-          maxZoom:15
-        });
-      }else{
-        map.setView([41.1579,-8.6291],13);
-      }
-
-      statusElement.classList.remove('error','hidden');
-      statusElement.textContent=
-        baresFiltrados.length===1
-          ? '1 bar encontrado'
-          : `${baresFiltrados.length} bares encontrados`;
-
-      setTimeout(()=>{
-        statusElement.classList.add('hidden');
-      },1500);
-    }
-
-    async function carregarBares(){
+<header><h1>Finos no Porto</h1><p>Encontra e compara finos no Porto</p></header>
+<div id="controls">
+<button id="toggle-filters" onclick="toggleFiltros()">Filtros</button>
+<div id="filters">
+<div class="filter-group"><label for="max-price">Preço máximo</label><input id="max-price" type="number" min="0" step="0.01" placeholder="Ex.: 1.50"></div>
+<div class="filter-group"><label for="zone-filter">Zona</label><select id="zone-filter"><option value="">Todas as zonas</option></select></div>
+<button id="clear-filters" onclick="limparFiltros()">Limpar filtros</button>
+</div>
+<div id="status">A carregar...</div>
+</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbyHQkcPVCpXyEhPKALGftxIbviZwqGjCckN-oj8Oz5F65iAmNNHeZYWhUwjXxaDD9uTyQ/exec';
+const map=L.map('map',{zoomControl:true}).setView([41.1579,-8.6291],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+let bares=[];let markers=[];
+
+function normalizarPreco(v){const n=Number(String(v??'').replace(',','.').replace('€','').trim());return Number.isFinite(n)&&n>0?Math.round(n*100)/100:null}
+function formatPrice(v){const n=normalizarPreco(v);return n===null?'Preço por confirmar':n.toFixed(2).replace('.',',')+' €'}
+function formatEuro(v){const n=normalizarPreco(v);return n===null?'—':n.toFixed(2).replace('.',',')+' €'}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function createPriceIcon(price){
+  const p=normalizarPreco(price);
+  if(p===null)return L.divIcon({className:'',html:'<div class="price-marker"><img class="blue-pin" src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"></div>',iconSize:[58,72],iconAnchor:[29,72],popupAnchor:[0,-68]});
+  return L.divIcon({className:'',html:'<div class="price-marker"><div class="price-label">'+formatEuro(p)+'</div><img class="blue-pin" src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"></div>',iconSize:[58,72],iconAnchor:[29,72],popupAnchor:[0,-68]});
+}
+function createPopupContent(bar){
+  const id=escapeHtml(bar.bar_id);
+  const nome=escapeHtml(bar.nome||'Estabelecimento');
+  const preco=normalizarPreco(bar.preco_fino);
+  const marca=escapeHtml(bar.marca_cerveja||'Marca por confirmar');
+  const zona=escapeHtml(bar.zona||'Zona não indicada');
+  const morada=escapeHtml(bar.morada||'Morada não indicada');
+  const updated=bar.atualizado_em?escapeHtml(bar.atualizado_em):'Ainda não confirmado';
+  let maps='';
+  if(bar.google_place_id){
+    const url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(bar.nome||'Porto')+'&query_place_id='+encodeURIComponent(bar.google_place_id);
+    maps='<a class="popup-map-link" href="'+url+'" target="_blank" rel="noopener">Ver no Google Maps →</a>';
+  }
+  return '<div class="popup">'+
+    '<div class="popup-title">'+nome+'</div>'+
+    '<div class="popup-price">'+(preco===null?'Preço por confirmar':formatEuro(preco))+'</div>'+
+    '<div class="popup-info">20 cl · '+marca+'</div>'+
+    '<div class="popup-info">'+morada+'</div>'+
+    '<div class="popup-info">'+zona+'</div>'+
+    (preco!==null?'<div class="popup-info">Preço/litro: '+formatEuro(preco/0.20)+'</div>':'')+
+    '<div class="popup-updated">'+(preco!==null?'Atualizado: '+updated:'Preço ainda por confirmar')+'</div>'+
+    maps+
+    '<div class="feedback"><div class="feedback-title">Sabes o preço deste fino?</div>'+
+    '<form class="feedback-form" data-bar-id="'+id+'">'+
+    '<input name="preco" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Preço (€)" required>'+
+    '<select name="marca" required><option value="">Marca da cerveja</option><option value="Super Bock">Super Bock</option><option value="Sagres">Sagres</option><option value="Outra">Outra</option></select>'+
+    '<button type="submit">Enviar</button>'+
+    '<div class="feedback-status"></div></form></div>'+
+    '</div>';
+}
+function configurarFeedback(){
+  document.querySelectorAll('.feedback-form').forEach(form=>{
+    if(form.dataset.ready)return;
+    form.dataset.ready='1';
+    form.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const status=form.querySelector('.feedback-status');
+      const button=form.querySelector('button');
+      const preco=form.querySelector('[name="preco"]').value;
+      const marca=form.querySelector('[name="marca"]').value;
+      const barId=form.dataset.barId;
+      if(!preco||!marca){status.textContent='Preenche o preço e a marca.';return}
+      button.disabled=true;
+      status.textContent='A enviar...';
       try{
-        statusElement.classList.remove('error','hidden');
-        statusElement.textContent='A carregar os bares...';
-
-        const response=await fetch(API_URL);
-
-        if(!response.ok){
-          throw new Error(`Erro HTTP ${response.status}`);
-        }
-
-        const data=await response.json();
-
-        if(!data.sucesso){
-          throw new Error(data.erro||'A API devolveu um erro.');
-        }
-
-        if(!Array.isArray(data.bares)){
-          throw new Error('A resposta da API não contém uma lista de bares.');
-        }
-
-        todosOsBares=data.bares;
-        preencherZonas();
-        mostrarBares();
-
-        console.log('Dados recebidos da API:',data);
-      }catch(error){
-        console.error('Erro ao carregar os bares:',error);
-        statusElement.classList.remove('hidden');
-        statusElement.classList.add('error');
-        statusElement.textContent='Não foi possível carregar os bares. Verifica a ligação à API.';
+        await fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({bar_id:barId,preco_reportado:preco,marca_reportada:marca})});
+        status.textContent='✓ Obrigado pela ajuda!';
+        setTimeout(()=>map.closePopup(),2000);
+      }catch(err){
+        status.textContent='Não foi possível enviar. Tenta novamente.';
+        button.disabled=false;
       }
-    }
-
-    mostrarFiltrosElement.addEventListener('click',()=>{
-      const aberto=filtersElement.classList.toggle('open');
-      mostrarFiltrosElement.setAttribute('aria-expanded',aberto);
-      mostrarFiltrosElement.textContent=aberto?'Fechar filtros':'Filtros';
-      setTimeout(()=>map.invalidateSize(),50);
     });
+  });
+}
+function mostrarBares(){
+  markers.forEach(m=>map.removeLayer(m));markers=[];
+  const max=parseFloat(document.getElementById('max-price').value);
+  const zona=document.getElementById('zone-filter').value;
+  let count=0;
+  const bounds=[];
+  bares.forEach(bar=>{
+    const lat=Number(bar.latitude),lng=Number(bar.longitude);
+    if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
+    const preco=normalizarPreco(bar.preco_fino);
+    if(Number.isFinite(max)&&(preco===null||preco>max))return;
+    if(zona&&String(bar.zona||'')!==zona)return;
+    const marker=L.marker([lat,lng],{icon:createPriceIcon(preco)}).addTo(map);
+    marker.bindPopup(createPopupContent(bar),{maxWidth:300});
+    marker.on('popupopen',configurarFeedback);
+    markers.push(marker);count++;bounds.push([lat,lng]);
+  });
+  document.getElementById('status').textContent=count+' bares encontrados';
+  if(bounds.length&&!window._mapFitted){map.fitBounds(bounds,{padding:[30,30],maxZoom:14});window._mapFitted=true}
+}
+function preencherZonas(){
+  const select=document.getElementById('zone-filter');
+  const zonas=[...new Set(bares.map(b=>String(b.zona||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  zonas.forEach(z=>{const o=document.createElement('option');o.value=z;o.textContent=z;select.appendChild(o)});
+}
+function toggleFiltros(){
+  const box=document.getElementById('filters');const btn=document.getElementById('toggle-filters');const aberto=box.style.display==='flex';
+  box.style.display=aberto?'none':'flex';btn.textContent=aberto?'Filtros':'Fechar filtros';
+}
+function limparFiltros(){
+  document.getElementById('max-price').value='';
+  document.getElementById('zone-filter').value='';
+  mostrarBares();
+}
+document.getElementById('max-price').addEventListener('input',mostrarBares);
+document.getElementById('zone-filter').addEventListener('change',mostrarBares);
 
-    precoMaxElement.addEventListener('input',mostrarBares);
-    zonaElement.addEventListener('change',mostrarBares);
-
-    limparFiltrosElement.addEventListener('click',()=>{
-      precoMaxElement.value='';
-      zonaElement.value='';
-      mostrarBares();
-    });
-
-    carregarBares();
-  </script>
+fetch(API_URL)
+  .then(r=>r.json())
+  .then(data=>{
+    bares=Array.isArray(data)?data:[];
+    preencherZonas();
+    mostrarBares();
+  })
+  .catch(()=>{
+    document.getElementById('status').textContent='Não foi possível carregar os bares.';
+  });
+</script>
 </body>
 </html>
