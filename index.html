@@ -22,132 +22,13 @@
     .reset-button{margin-top:auto;cursor:pointer}
     .reset-button:hover{background:#f2f2f2}
     #map{width:100%;height:calc(100vh - 191px)}
+    .popup-title{font-weight:bold;font-size:17px;margin-bottom:8px}
+    .popup-price{font-size:20px;font-weight:bold;margin-bottom:5px}
+    .popup-info{color:#555;font-size:14px;margin-bottom:4px}
+    .popup-updated{color:#777;font-size:12px;margin-top:8px}
     .status{padding:9px 16px;background:#fff3cd;color:#664d03;font-size:14px;border-bottom:1px solid #ddd}
     .status.error{background:#f8d7da;color:#842029}
     .hidden{display:none}
-
-    /* Marcador com preço */
-    .price-marker{
-      width:46px;
-      height:46px;
-      border-radius:50%;
-      background:#fff;
-      border:3px solid #222;
-      box-shadow:0 3px 10px rgba(0,0,0,.22);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:12px;
-      font-weight:800;
-      color:#222;
-      white-space:nowrap;
-      position:relative;
-    }
-
-    .price-marker:after{
-      content:'';
-      position:absolute;
-      bottom:-7px;
-      left:50%;
-      width:11px;
-      height:11px;
-      background:#fff;
-      border-right:3px solid #222;
-      border-bottom:3px solid #222;
-      transform:translateX(-50%) rotate(45deg);
-    }
-
-    /* Popup */
-    .leaflet-popup-content-wrapper{
-      border-radius:14px;
-      padding:0;
-      box-shadow:0 8px 30px rgba(0,0,0,.18)
-    }
-
-    .leaflet-popup-content{
-      margin:0;
-      width:280px!important
-    }
-
-    .leaflet-popup-tip{
-      box-shadow:none
-    }
-
-    .popup-card{
-      padding:18px
-    }
-
-    .popup-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      margin-bottom:14px
-    }
-
-    .popup-title{
-      font-size:18px;
-      font-weight:700;
-      line-height:1.2;
-      color:#222
-    }
-
-    .popup-price{
-      font-size:22px;
-      font-weight:800;
-      line-height:1;
-      color:#222;
-      white-space:nowrap
-    }
-
-    .popup-main{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:11px 12px;
-      border-radius:10px;
-      background:#f6f6f6;
-      margin-bottom:12px
-    }
-
-    .popup-main span{
-      font-size:14px;
-      color:#444
-    }
-
-    .popup-main strong{
-      font-size:14px;
-      color:#222
-    }
-
-    .popup-row{
-      display:flex;
-      gap:10px;
-      margin-bottom:9px;
-      align-items:flex-start
-    }
-
-    .popup-icon{
-      width:18px;
-      flex:0 0 18px;
-      text-align:center;
-      font-size:14px
-    }
-
-    .popup-text{
-      font-size:13px;
-      line-height:1.4;
-      color:#555
-    }
-
-    .popup-updated{
-      margin-top:13px;
-      padding-top:11px;
-      border-top:1px solid #eee;
-      font-size:12px;
-      color:#888
-    }
-
     @media(max-width:600px){
       header{padding:14px}
       header h1{font-size:21px}
@@ -156,8 +37,6 @@
       .filter-group input,.filter-group select{width:100%}
       .reset-button{width:100%;margin-top:4px}
       #map{height:calc(100vh - 248px)}
-      .leaflet-popup-content{width:270px!important}
-      .price-marker{width:43px;height:43px;font-size:11px}
     }
   </style>
 </head>
@@ -172,17 +51,13 @@
       <label for="precoMax">Preço máximo</label>
       <input id="precoMax" type="number" min="0" step="0.10" placeholder="Ex.: 1,50">
     </div>
-
     <div class="filter-group">
       <label for="zona">Zona</label>
       <select id="zona">
         <option value="">Todas as zonas</option>
       </select>
     </div>
-
-    <button id="limparFiltros" class="reset-button" type="button">
-      Limpar filtros
-    </button>
+    <button id="limparFiltros" class="reset-button" type="button">Limpar filtros</button>
   </div>
 
   <div id="status" class="status">A carregar os bares...</div>
@@ -254,25 +129,6 @@
       return `Atualizado há ${days} dias`;
     }
 
-    function createPriceIcon(price){
-      const number=Number(price);
-      const text=Number.isFinite(number)
-        ? number.toLocaleString('pt-PT',{
-            style:'currency',
-            currency:'EUR',
-            minimumFractionDigits:2
-          })
-        : '—';
-
-      return L.divIcon({
-        className:'',
-        html:`<div class="price-marker">${text}</div>`,
-        iconSize:[46,53],
-        iconAnchor:[23,53],
-        popupAnchor:[0,-53]
-      });
-    }
-
     function createPopupContent(bar){
       const nome=escapeHtml(bar.nome);
       const marca=escapeHtml(bar.marca_cerveja);
@@ -285,33 +141,13 @@
       const atualizado=formatUpdatedText(bar.atualizado_em);
 
       return `
-        <div class="popup-card">
-          <div class="popup-header">
-            <div class="popup-title">${nome}</div>
-            <div class="popup-price">${preco}</div>
-          </div>
-
-          <div class="popup-main">
-            <span>${tamanho} cl</span>
-            <span>·</span>
-            <strong>${marca}</strong>
-          </div>
-
-          <div class="popup-row">
-            <div class="popup-icon">€/L</div>
-            <div class="popup-text"><strong>${precoLitro}</strong></div>
-          </div>
-
-          <div class="popup-row">
-            <div class="popup-icon">⌖</div>
-            <div class="popup-text">${morada}</div>
-          </div>
-
-          <div class="popup-row">
-            <div class="popup-icon">●</div>
-            <div class="popup-text">${freguesia} · ${zona}</div>
-          </div>
-
+        <div class="popup">
+          <div class="popup-title">${nome}</div>
+          <div class="popup-price">${preco}</div>
+          <div class="popup-info">${tamanho} cl · ${marca}</div>
+          <div class="popup-info">${precoLitro}</div>
+          <div class="popup-info">${morada}</div>
+          <div class="popup-info">${freguesia} · ${zona}</div>
           <div class="popup-updated">${atualizado}</div>
         </div>
       `;
@@ -366,11 +202,7 @@
 
         if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
 
-        const marker=L.marker(
-          [latitude,longitude],
-          {icon:createPriceIcon(bar.preco_fino)}
-        );
-
+        const marker=L.marker([latitude,longitude]);
         marker.bindPopup(createPopupContent(bar));
         marker.addTo(markersLayer);
         markers.push(marker);
@@ -387,13 +219,16 @@
       }
 
       statusElement.classList.remove('error','hidden');
-      statusElement.textContent=baresFiltrados.length===1
-        ?'1 bar encontrado'
-        :`${baresFiltrados.length} bares encontrados`;
+      statusElement.textContent=
+        baresFiltrados.length===1
+          ? '1 bar encontrado'
+          : `${baresFiltrados.length} bares encontrados`;
 
-      setTimeout(()=>{
-        statusElement.classList.add('hidden');
-      },1500);
+      if(baresFiltrados.length>=0){
+        setTimeout(()=>{
+          statusElement.classList.add('hidden');
+        },1500);
+      }
     }
 
     async function carregarBares(){
@@ -426,7 +261,8 @@
         console.error('Erro ao carregar os bares:',error);
         statusElement.classList.remove('hidden');
         statusElement.classList.add('error');
-        statusElement.textContent='Não foi possível carregar os bares. Verifica a ligação à API.';
+        statusElement.textContent=
+          'Não foi possível carregar os bares. Verifica a ligação à API.';
       }
     }
 
@@ -438,6 +274,11 @@
       zonaElement.value='';
       mostrarBares();
     });
+
+    carregarBares();
+  </script>
+</body>
+</html>
 
     carregarBares();
   </script>
