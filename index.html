@@ -29,6 +29,29 @@
     .status{padding:9px 16px;background:#fff3cd;color:#664d03;font-size:14px;border-bottom:1px solid #ddd}
     .status.error{background:#f8d7da;color:#842029}
     .hidden{display:none}
+
+    .price-pin{
+      width:38px;
+      height:38px;
+      background:#2A7FFF;
+      border:3px solid #fff;
+      border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      box-shadow:0 2px 6px rgba(0,0,0,.3);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .price-pin span{
+      transform:rotate(45deg);
+      color:#fff;
+      font-size:11px;
+      font-weight:700;
+      line-height:1;
+      white-space:nowrap;
+    }
+
     @media(max-width:600px){
       header{padding:14px}
       header h1{font-size:21px}
@@ -129,6 +152,25 @@
       return `Atualizado há ${days} dias`;
     }
 
+    function createPriceIcon(price){
+      const number=Number(price);
+      const text=Number.isFinite(number)
+        ? number.toLocaleString('pt-PT',{
+            style:'currency',
+            currency:'EUR',
+            minimumFractionDigits:2
+          })
+        : '—';
+
+      return L.divIcon({
+        className:'',
+        html:`<div class="price-pin"><span>${text}</span></div>`,
+        iconSize:[38,48],
+        iconAnchor:[19,48],
+        popupAnchor:[0,-48]
+      });
+    }
+
     function createPopupContent(bar){
       const nome=escapeHtml(bar.nome);
       const marca=escapeHtml(bar.marca_cerveja);
@@ -202,7 +244,11 @@
 
         if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
 
-        const marker=L.marker([latitude,longitude]);
+        const marker=L.marker(
+          [latitude,longitude],
+          {icon:createPriceIcon(bar.preco_fino)}
+        );
+
         marker.bindPopup(createPopupContent(bar));
         marker.addTo(markersLayer);
         markers.push(marker);
@@ -274,11 +320,6 @@
       zonaElement.value='';
       mostrarBares();
     });
-
-    carregarBares();
-  </script>
-</body>
-</html>
 
     carregarBares();
   </script>
