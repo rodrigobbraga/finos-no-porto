@@ -31,15 +31,16 @@
     .popup-card{padding:18px}
     .popup-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
     .popup-title{font-size:18px;font-weight:700;line-height:1.2;color:#222}
-    .popup-price{text-align:right;font-size:22px;font-weight:800;line-height:1;color:#222;white-space:nowrap}
+    .popup-price{font-size:22px;font-weight:800;line-height:1;color:#222;white-space:nowrap}
     .popup-main{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:10px;background:#f6f6f6;margin-bottom:12px}
     .popup-main span{font-size:14px;color:#444}
     .popup-main strong{font-size:14px;color:#222}
-    .popup-divider{height:1px;background:#eee;margin:12px 0}
     .popup-row{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
     .popup-icon{width:18px;flex:0 0 18px;text-align:center;font-size:14px}
     .popup-text{font-size:13px;line-height:1.4;color:#555}
     .popup-updated{margin-top:13px;padding-top:11px;border-top:1px solid #eee;font-size:12px;color:#888}
+    .price-marker{display:flex;align-items:center;justify-content:center;min-width:58px;height:34px;padding:0 10px;border-radius:18px;background:#fff;border:2px solid #222;box-shadow:0 3px 10px rgba(0,0,0,.2);font-size:14px;font-weight:800;color:#222;white-space:nowrap}
+    .price-marker:after{content:'';position:absolute;bottom:-7px;left:50%;width:12px;height:12px;background:#fff;border-right:2px solid #222;border-bottom:2px solid #222;transform:translateX(-50%) rotate(45deg)}
     @media(max-width:600px){
       header{padding:14px}
       header h1{font-size:21px}
@@ -49,6 +50,7 @@
       .reset-button{width:100%;margin-top:4px}
       #map{height:calc(100vh - 248px)}
       .leaflet-popup-content{width:270px!important}
+      .price-marker{min-width:54px;height:32px;font-size:13px}
     }
   </style>
 </head>
@@ -141,6 +143,25 @@
       return `Atualizado há ${days} dias`;
     }
 
+    function createPriceIcon(price){
+      const number=Number(price);
+      const text=Number.isFinite(number)
+        ? number.toLocaleString('pt-PT',{
+            style:'currency',
+            currency:'EUR',
+            minimumFractionDigits:2
+          })
+        : '—';
+
+      return L.divIcon({
+        className:'',
+        html:`<div class="price-marker">${text}</div>`,
+        iconSize:[58,42],
+        iconAnchor:[29,42],
+        popupAnchor:[0,-42]
+      });
+    }
+
     function createPopupContent(bar){
       const nome=escapeHtml(bar.nome);
       const marca=escapeHtml(bar.marca_cerveja);
@@ -229,7 +250,11 @@
 
         if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
 
-        const marker=L.marker([latitude,longitude]);
+        const marker=L.marker(
+          [latitude,longitude],
+          {icon:createPriceIcon(bar.preco_fino)}
+        );
+
         marker.bindPopup(createPopupContent(bar));
         marker.addTo(markersLayer);
         markers.push(marker);
