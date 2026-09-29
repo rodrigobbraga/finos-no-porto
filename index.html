@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Finos no Porto</title>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQ3gW6s8mS5Ff5D6K1L6jW+X2fQ7j4M="
+    crossorigin=""
+  >
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+
+    header {
+      padding: 16px;
+      background: white;
+      border-bottom: 1px solid #ddd;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    #map {
+      width: 100%;
+      height: calc(100vh - 89px);
+    }
+
+    .popup-title {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .popup-price {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .popup-info {
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Finos no Porto</h1>
+    <p>Encontra e compara finos no Porto</p>
+  </header>
+
+  <div id="map"></div>
+
+  <!-- Leaflet -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    // Criar o mapa centrado no Porto
+    const map = L.map('map').setView([41.1579, -8.6291], 13);
+
+    // Mapa base OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Dados temporários para testar o mapa
+    const bares = [
+      {
+        bar_id: 1,
+        nome: 'O Galo Dourado',
+        marca_cerveja: 'Super Bock',
+        morada: 'Rua das Flores 145, Porto',
+        preco_fino: 1.20,
+        tamanho_cl: 20,
+        latitude: 41.14320,
+        longitude: -8.61540
+      },
+      {
+        bar_id: 2,
+        nome: 'Café do Norte',
+        marca_cerveja: 'Sagres',
+        morada: 'Rua de Cedofeita 218, Porto',
+        preco_fino: 1.00,
+        tamanho_cl: 20,
+        latitude: 41.15180,
+        longitude: -8.62010
+      },
+      {
+        bar_id: 3,
+        nome: 'Adega 25',
+        marca_cerveja: 'Super Bock',
+        morada: 'Rua do Bonfim 87, Porto',
+        preco_fino: 1.30,
+        tamanho_cl: 25,
+        latitude: 41.14890,
+        longitude: -8.59580
+      }
+    ];
+
+    // Adicionar os bares ao mapa
+    bares.forEach(bar => {
+      const marker = L.marker([
+        bar.latitude,
+        bar.longitude
+      ]).addTo(map);
+
+      marker.bindPopup(`
+        <div>
+          <div class="popup-title">${bar.nome}</div>
+
+          <div class="popup-price">
+            €${bar.preco_fino.toFixed(2)}
+          </div>
+
+          <div class="popup-info">
+            ${bar.tamanho_cl} cl · ${bar.marca_cerveja}
+          </div>
+
+          <div class="popup-info">
+            ${bar.morada}
+          </div>
+        </div>
+      `);
+    });
+  </script>
+
+</body>
+</html>
