@@ -30,35 +30,29 @@
     .status.error{background:#f8d7da;color:#842029}
     .hidden{display:none}
     #map{width:100%;flex:1;min-height:0}
-
     .popup-title{font-weight:bold;font-size:17px;margin-bottom:8px}
     .popup-price{font-size:20px;font-weight:bold;margin-bottom:5px}
     .popup-info{color:#555;font-size:14px;margin-bottom:4px}
     .popup-updated{color:#777;font-size:12px;margin-top:8px}
     .popup-map-link{display:block;margin-top:12px;padding-top:12px;border-top:1px solid #eee;color:#1a73e8;font-size:13px;font-weight:600;text-decoration:none}
     .popup-map-link:hover{text-decoration:underline}
-
     .feedback{margin-top:13px;padding-top:12px;border-top:1px solid #eee}
     .feedback-question{font-size:13px;font-weight:600;color:#333;margin-bottom:9px}
     .feedback-buttons{display:flex;gap:8px}
     .feedback-button{flex:1;height:34px;border:1px solid #ccc;border-radius:7px;background:#fff;font-size:13px;font-weight:600;cursor:pointer}
     .feedback-button:hover{background:#f5f5f5}
-    .feedback-no{color:#444}
     .feedback-form{display:none;margin-top:9px}
     .feedback-form.open{display:flex;gap:7px}
     .feedback-input{flex:1;min-width:0;height:34px;border:1px solid #ccc;border-radius:7px;padding:0 9px;font-size:13px}
     .feedback-send{height:34px;border:1px solid #ccc;border-radius:7px;background:#222;color:#fff;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer}
-    .feedback-message{display:none;margin-top:9px;font-size:12px;color:#555}
+    .feedback-message{display:none;margin-top:9px;font-size:12px;color:#555;font-weight:600}
     .feedback-message.visible{display:block}
-
     .leaflet-popup-content-wrapper{border-radius:12px}
     .leaflet-popup-content{margin:14px;max-width:280px}
-
     .price-marker{position:relative;width:58px;height:72px}
     .price-label{position:absolute;top:0;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #bbb;border-radius:6px;padding:4px 7px;font-size:12px;font-weight:700;color:#222;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:2}
     .price-label:after{content:'';position:absolute;bottom:-5px;left:50%;width:8px;height:8px;background:#fff;border-right:1px solid #bbb;border-bottom:1px solid #bbb;transform:translateX(-50%) rotate(45deg)}
     .blue-pin{position:absolute;width:25px;height:41px;left:50%;bottom:0;transform:translateX(-50%);z-index:1}
-
     @media(max-width:600px){
       header{padding:14px}
       header h1{font-size:21px}
@@ -242,7 +236,7 @@
       return data;
     }
 
-    function configurarFeedback(popupElement,bar){
+    function configurarFeedback(popupElement,bar,marker){
       const feedback=popupElement.querySelector('.feedback');
       if(!feedback)return;
 
@@ -258,6 +252,12 @@
         message.classList.add('visible');
       }
 
+      function fecharPopupAutomaticamente(){
+        setTimeout(()=>{
+          marker.closePopup();
+        },2000);
+      }
+
       yesButton.addEventListener('click',async()=>{
         yesButton.disabled=true;
         noButton.disabled=true;
@@ -270,8 +270,11 @@
           );
 
           mostrarMensagem('✓ Obrigado! Preço confirmado.');
+
           bar.atualizado_em=new Date().toISOString().split('T')[0];
           popupElement.querySelector('.popup-updated').textContent='Atualizado hoje';
+
+          fecharPopupAutomaticamente();
         }catch(error){
           console.error('Erro ao confirmar preço:',error);
           yesButton.disabled=false;
@@ -311,11 +314,19 @@
           form.classList.remove('open');
 
           mostrarMensagem('✓ Obrigado! Vamos verificar o novo preço.');
+
+          fecharPopupAutomaticamente();
         }catch(error){
           console.error('Erro ao enviar alteração:',error);
           sendButton.disabled=false;
           input.disabled=false;
           mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+        }
+      });
+
+      input.addEventListener('keydown',event=>{
+        if(event.key==='Enter'){
+          sendButton.click();
         }
       });
     }
@@ -352,10 +363,12 @@
               <button class="feedback-button feedback-yes" type="button">Sim</button>
               <button class="feedback-button feedback-no" type="button">Não</button>
             </div>
+
             <div class="feedback-form">
               <input class="feedback-input" type="number" min="0.01" step="0.01" placeholder="Novo preço">
               <button class="feedback-send" type="button">Enviar</button>
             </div>
+
             <div class="feedback-message"></div>
           </div>
         </div>
@@ -422,7 +435,7 @@
           const popupElement=event.popup.getElement();
 
           if(popupElement){
-            configurarFeedback(popupElement,bar);
+            configurarFeedback(popupElement,bar,marker);
           }
         });
 
