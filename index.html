@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-  <link rel="icon" type="image/png" href="logo_site.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finos no Porto</title>
@@ -15,6 +14,28 @@
     header{padding:16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
     header h1{margin:0;font-size:24px}
     header p{margin:6px 0 0;color:#666;font-size:14px}
+
+    .top-actions{display:flex;gap:8px;padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
+    .action-button{height:38px;border:1px solid #ccc;border-radius:8px;padding:0 14px;background:#fff;font-size:14px;cursor:pointer}
+    .action-button:hover{background:#f2f2f2}
+    .action-button.primary{background:#222;color:#fff;border-color:#222}
+    .action-button.primary:hover{background:#333}
+
+    .panel{display:none;padding:14px 16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
+    .panel.open{display:block}
+    .panel-title{margin:0 0 4px;font-size:16px}
+    .panel-description{margin:0 0 12px;color:#666;font-size:13px}
+    .new-bar-form{display:grid;grid-template-columns:1.4fr .8fr 1fr 1fr auto;gap:10px;align-items:end}
+    .form-group{display:flex;flex-direction:column;gap:4px}
+    .form-group label{font-size:12px;color:#666}
+    .form-group input,.form-group select{height:38px;border:1px solid #ccc;border-radius:8px;padding:0 10px;background:#fff;font-size:14px;width:100%}
+    .form-group input:focus,.form-group select:focus{outline:2px solid #ddd;outline-offset:1px}
+    .form-note{margin:10px 0 0;color:#777;font-size:12px}
+    .submit-message{display:none;margin-top:10px;font-size:13px;font-weight:600}
+    .submit-message.visible{display:block}
+    .submit-message.success{color:#176b2c}
+    .submit-message.error{color:#842029}
+
     .filter-toggle{padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
     .filter-button{height:38px;border:1px solid #ccc;border-radius:8px;padding:0 14px;background:#fff;font-size:14px;cursor:pointer}
     .filter-button:hover{background:#f2f2f2}
@@ -27,37 +48,51 @@
     .filter-group select{min-width:160px}
     .reset-button{margin-top:auto;cursor:pointer}
     .reset-button:hover{background:#f2f2f2}
+
     .status{padding:9px 16px;background:#fff3cd;color:#664d03;font-size:14px;border-bottom:1px solid #ddd;flex-shrink:0}
     .status.error{background:#f8d7da;color:#842029}
     .hidden{display:none}
     #map{width:100%;flex:1;min-height:0}
+
     .popup-title{font-weight:bold;font-size:17px;margin-bottom:8px}
     .popup-price{font-size:20px;font-weight:bold;margin-bottom:5px}
     .popup-info{color:#555;font-size:14px;margin-bottom:4px}
     .popup-updated{color:#777;font-size:12px;margin-top:8px}
     .popup-map-link{display:block;margin-top:12px;padding-top:12px;border-top:1px solid #eee;color:#1a73e8;font-size:13px;font-weight:600;text-decoration:none}
     .popup-map-link:hover{text-decoration:underline}
+
     .feedback{margin-top:13px;padding-top:12px;border-top:1px solid #eee}
     .feedback-question{font-size:13px;font-weight:600;color:#333;margin-bottom:9px}
     .feedback-buttons{display:flex;gap:8px}
     .feedback-button{flex:1;height:34px;border:1px solid #ccc;border-radius:7px;background:#fff;font-size:13px;font-weight:600;cursor:pointer}
     .feedback-button:hover{background:#f5f5f5}
-    .feedback-form{display:none;margin-top:9px}
-    .feedback-form.open{display:flex;gap:7px}
+    .feedback-form{display:none;margin-top:9px;gap:7px}
+    .feedback-form.open{display:flex}
     .feedback-input{flex:1;min-width:0;height:34px;border:1px solid #ccc;border-radius:7px;padding:0 9px;font-size:13px}
     .feedback-send{height:34px;border:1px solid #ccc;border-radius:7px;background:#222;color:#fff;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer}
     .feedback-message{display:none;margin-top:9px;font-size:12px;color:#555;font-weight:600}
     .feedback-message.visible{display:block}
-    .leaflet-popup-content-wrapper{border-radius:12px}
-    .leaflet-popup-content{margin:14px;max-width:280px}
+    .feedback-missing{font-size:13px;color:#555;margin-bottom:9px}
+
     .price-marker{position:relative;width:58px;height:72px}
     .price-label{position:absolute;top:0;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #bbb;border-radius:6px;padding:4px 7px;font-size:12px;font-weight:700;color:#222;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:2}
     .price-label:after{content:'';position:absolute;bottom:-5px;left:50%;width:8px;height:8px;background:#fff;border-right:1px solid #bbb;border-bottom:1px solid #bbb;transform:translateX(-50%) rotate(45deg)}
     .blue-pin{position:absolute;width:25px;height:41px;left:50%;bottom:0;transform:translateX(-50%);z-index:1}
+
+    @media(max-width:850px){
+      .new-bar-form{grid-template-columns:1fr 1fr}
+      .new-bar-form .submit-new-bar{grid-column:1 / -1}
+    }
+
     @media(max-width:600px){
       header{padding:14px}
       header h1{font-size:21px}
       header p{font-size:13px}
+      .top-actions{padding:8px 10px;flex-direction:column}
+      .action-button{width:100%}
+      .panel{padding:10px}
+      .new-bar-form{grid-template-columns:1fr}
+      .new-bar-form .submit-new-bar{grid-column:auto}
       .filter-toggle{padding:8px 10px}
       .filters{padding:10px}
       .filter-group{flex:1;min-width:140px}
@@ -82,6 +117,48 @@
     <h1>Finos no Porto</h1>
     <p>Encontra e compara finos no Porto</p>
   </header>
+
+  <div class="top-actions">
+    <button id="mostrarNovoBar" class="action-button primary" type="button" aria-expanded="false">
+      + Adicionar um bar
+    </button>
+  </div>
+
+  <section id="newBarPanel" class="panel" aria-hidden="true">
+    <h2 class="panel-title">Adicionar um bar</h2>
+    <p class="panel-description">
+      Não encontras o bar no mapa? Envia os dados e nós verificamos antes de o adicionar.
+    </p>
+
+    <form id="newBarForm" class="new-bar-form">
+      <div class="form-group">
+        <label for="novoNomeBar">Nome do bar</label>
+        <input id="novoNomeBar" name="nome_bar" type="text" maxlength="120" placeholder="Ex.: Café XYZ" required>
+      </div>
+
+      <div class="form-group">
+        <label for="novoPreco">Preço do fino (€)</label>
+        <input id="novoPreco" name="preco_reportado" type="text" inputmode="decimal" placeholder="Ex.: 1,20" required>
+      </div>
+
+      <div class="form-group">
+        <label for="novoMarca">Marca</label>
+        <input id="novoMarca" name="marca_reportada" type="text" maxlength="80" placeholder="Ex.: Super Bock" required>
+      </div>
+
+      <div class="form-group">
+        <label for="novoZona">Zona</label>
+        <select id="novoZona" name="zona" required>
+          <option value="">Seleciona uma zona</option>
+        </select>
+      </div>
+
+      <button class="action-button primary submit-new-bar" type="submit">Enviar</button>
+    </form>
+
+    <p class="form-note">Nesta fase, todos os finos submetidos são considerados de 20 cl.</p>
+    <div id="newBarMessage" class="submit-message" role="status" aria-live="polite"></div>
+  </section>
 
   <div class="filter-toggle">
     <button id="mostrarFiltros" class="filter-button" type="button" aria-expanded="false">Filtros</button>
@@ -110,7 +187,9 @@
 
   <script>
     const API_URL='https://script.google.com/macros/s/AKfycbyHQkcPVCpXyEhPKALGftxIbviZwqGjCckN-oj8Oz5F65iAmNNHeZYWhUwjXxaDD9uTyQ/exec';
-    const map=L.map('map').setView([41.1579,-8.6291],13);
+    const DEFAULT_MAP_CENTER=[41.1579,-8.6291];
+
+    const map=L.map('map').setView(DEFAULT_MAP_CENTER,13);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
       maxZoom:19,
@@ -123,6 +202,15 @@
     const limparFiltrosElement=document.getElementById('limparFiltros');
     const mostrarFiltrosElement=document.getElementById('mostrarFiltros');
     const filtersElement=document.getElementById('filters');
+
+    const mostrarNovoBarElement=document.getElementById('mostrarNovoBar');
+    const newBarPanelElement=document.getElementById('newBarPanel');
+    const newBarFormElement=document.getElementById('newBarForm');
+    const novoNomeBarElement=document.getElementById('novoNomeBar');
+    const novoPrecoElement=document.getElementById('novoPreco');
+    const novoMarcaElement=document.getElementById('novoMarca');
+    const novoZonaElement=document.getElementById('novoZona');
+    const newBarMessageElement=document.getElementById('newBarMessage');
 
     let todosOsBares=[];
     let markersLayer=L.layerGroup().addTo(map);
@@ -137,9 +225,14 @@
         .replace(/'/g,'&#039;');
     }
 
+    function isPriceAvailable(price){
+      const number=Number(price);
+      return Number.isFinite(number)&&number>0;
+    }
+
     function formatPrice(price){
       const number=Number(price);
-      if(!Number.isFinite(number))return 'Preço não disponível';
+      if(!isPriceAvailable(number))return 'Preço não disponível';
       return number.toLocaleString('pt-PT',{
         style:'currency',
         currency:'EUR'
@@ -148,7 +241,7 @@
 
     function formatPricePerLiter(price){
       const number=Number(price);
-      if(!Number.isFinite(number))return '';
+      if(!isPriceAvailable(number))return 'Preço por litro não disponível';
       return number.toLocaleString('pt-PT',{
         style:'currency',
         currency:'EUR'
@@ -174,7 +267,7 @@
 
     function createPriceIcon(price){
       const number=Number(price);
-      const text=Number.isFinite(number)
+      const text=isPriceAvailable(number)
         ? number.toLocaleString('pt-PT',{
             style:'currency',
             currency:'EUR',
@@ -241,6 +334,7 @@
       const feedback=popupElement.querySelector('.feedback');
       if(!feedback)return;
 
+      const priceAvailable=isPriceAvailable(bar.preco_fino);
       const yesButton=feedback.querySelector('.feedback-yes');
       const noButton=feedback.querySelector('.feedback-no');
       const form=feedback.querySelector('.feedback-form');
@@ -259,36 +353,51 @@
         },2000);
       }
 
-      yesButton.addEventListener('click',async()=>{
-        yesButton.disabled=true;
-        noButton.disabled=true;
+      if(!priceAvailable){
+        if(yesButton)yesButton.remove();
+        if(noButton)noButton.remove();
 
-        try{
-          await enviarFeedback(
-            bar.bar_id,
-            Number(bar.tamanho_cl),
-            'confirmacao'
-          );
+        const missing=feedback.querySelector('.feedback-missing');
+        if(missing)missing.textContent='Ainda não temos o preço deste fino. Sabes quanto custa?';
 
-          mostrarMensagem('✓ Obrigado! Preço confirmado.');
-
-          bar.atualizado_em=new Date().toISOString().split('T')[0];
-          popupElement.querySelector('.popup-updated').textContent='Atualizado hoje';
-
-          fecharPopupAutomaticamente();
-        }catch(error){
-          console.error('Erro ao confirmar preço:',error);
-          yesButton.disabled=false;
-          noButton.disabled=false;
-          mostrarMensagem('Não foi possível enviar. Tenta novamente.');
-        }
-      });
-
-      noButton.addEventListener('click',()=>{
-        noButton.disabled=true;
         form.classList.add('open');
-        input.focus();
-      });
+      }
+
+      if(yesButton){
+        yesButton.addEventListener('click',async()=>{
+          yesButton.disabled=true;
+          noButton.disabled=true;
+
+          try{
+            await enviarFeedback(
+              bar.bar_id,
+              Number(bar.tamanho_cl),
+              'confirmacao'
+            );
+
+            mostrarMensagem('✓ Obrigado! Preço confirmado.');
+
+            bar.atualizado_em=new Date().toISOString().split('T')[0];
+            const updatedElement=popupElement.querySelector('.popup-updated');
+            if(updatedElement)updatedElement.textContent='Atualizado hoje';
+
+            fecharPopupAutomaticamente();
+          }catch(error){
+            console.error('Erro ao confirmar preço:',error);
+            yesButton.disabled=false;
+            noButton.disabled=false;
+            mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+          }
+        });
+      }
+
+      if(noButton){
+        noButton.addEventListener('click',()=>{
+          noButton.disabled=true;
+          form.classList.add('open');
+          input.focus();
+        });
+      }
 
       sendButton.addEventListener('click',async()=>{
         const preco=input.value.replace(',','.');
@@ -310,15 +419,19 @@
             valor
           );
 
-          yesButton.disabled=true;
-          noButton.disabled=true;
+          if(yesButton)yesButton.disabled=true;
+          if(noButton)noButton.disabled=true;
           form.classList.remove('open');
 
-          mostrarMensagem('✓ Obrigado! Vamos verificar o novo preço.');
+          mostrarMensagem(
+            priceAvailable
+              ? '✓ Obrigado! Vamos verificar o novo preço.'
+              : '✓ Obrigado! Vamos verificar este preço.'
+          );
 
           fecharPopupAutomaticamente();
         }catch(error){
-          console.error('Erro ao enviar alteração:',error);
+          console.error('Erro ao enviar preço:',error);
           sendButton.disabled=false;
           input.disabled=false;
           mostrarMensagem('Não foi possível enviar. Tenta novamente.');
@@ -337,6 +450,7 @@
       const marca=escapeHtml(bar.marca_cerveja);
       const morada=escapeHtml(bar.morada);
       const zona=escapeHtml(bar.zona);
+      const priceAvailable=isPriceAvailable(bar.preco_fino);
       const preco=formatPrice(bar.preco_fino);
       const tamanho=Number(bar.tamanho_cl);
       const precoLitro=formatPricePerLiter(bar.preco_litro);
@@ -359,11 +473,18 @@
           }
 
           <div class="feedback">
-            <div class="feedback-question">O preço está correto?</div>
-            <div class="feedback-buttons">
-              <button class="feedback-button feedback-yes" type="button">Sim</button>
-              <button class="feedback-button feedback-no" type="button">Não</button>
-            </div>
+            ${priceAvailable
+              ? `
+                <div class="feedback-question">O preço está correto?</div>
+                <div class="feedback-buttons">
+                  <button class="feedback-button feedback-yes" type="button">Sim</button>
+                  <button class="feedback-button feedback-no" type="button">Não</button>
+                </div>
+              `
+              : `
+                <div class="feedback-missing">Ainda não temos o preço deste fino. Sabes quanto custa?</div>
+              `
+            }
 
             <div class="feedback-form">
               <input class="feedback-input" type="number" min="0.01" step="0.01" placeholder="Novo preço">
@@ -384,12 +505,18 @@
       )].sort((a,b)=>a.localeCompare(b,'pt'));
 
       zonaElement.innerHTML='<option value="">Todas as zonas</option>';
+      novoZonaElement.innerHTML='<option value="">Seleciona uma zona</option>';
 
       zonas.forEach(zona=>{
-        const option=document.createElement('option');
-        option.value=zona;
-        option.textContent=zona;
-        zonaElement.appendChild(option);
+        const filterOption=document.createElement('option');
+        filterOption.value=zona;
+        filterOption.textContent=zona;
+        zonaElement.appendChild(filterOption);
+
+        const submitOption=document.createElement('option');
+        submitOption.value=zona;
+        submitOption.textContent=zona;
+        novoZonaElement.appendChild(submitOption);
       });
     }
 
@@ -402,7 +529,8 @@
         const preco=Number(bar.preco_fino);
 
         if(precoMax!==null&&Number.isFinite(precoMax)){
-          if(!Number.isFinite(preco)||preco>precoMax)return false;
+          // 0 significa "preço desconhecido": não entra num filtro de preço.
+          if(!isPriceAvailable(preco)||preco>precoMax)return false;
         }
 
         if(zonaSelecionada&&String(bar.zona)!==zonaSelecionada){
@@ -451,7 +579,7 @@
           maxZoom:15
         });
       }else{
-        map.setView([41.1579,-8.6291],13);
+        map.setView(DEFAULT_MAP_CENTER,13);
       }
 
       statusElement.classList.remove('error','hidden');
@@ -463,6 +591,69 @@
       setTimeout(()=>{
         statusElement.classList.add('hidden');
       },1500);
+    }
+
+    function mostrarMensagemNovoBar(texto,tipo){
+      newBarMessageElement.textContent=texto;
+      newBarMessageElement.className=`submit-message visible ${tipo}`;
+    }
+
+    function limparMensagemNovoBar(){
+      newBarMessageElement.textContent='';
+      newBarMessageElement.className='submit-message';
+    }
+
+    function fecharPainelNovoBar(){
+      const aberto=newBarPanelElement.classList.remove('open');
+      newBarPanelElement.setAttribute('aria-hidden','true');
+      mostrarNovoBarElement.setAttribute('aria-expanded','false');
+      mostrarNovoBarElement.textContent='+ Adicionar um bar';
+      setTimeout(()=>map.invalidateSize(),50);
+    }
+
+    async function enviarNovaSubmissao(){
+      const nomeBar=novoNomeBarElement.value.trim();
+      const precoTexto=novoPrecoElement.value.replace(',','.').trim();
+      const marca=novoMarcaElement.value.trim();
+      const zona=novoZonaElement.value;
+
+      if(!nomeBar||!precoTexto||!marca||!zona){
+        mostrarMensagemNovoBar('Preenche todos os campos.', 'error');
+        return;
+      }
+
+      const preco=Number(precoTexto);
+
+      if(!Number.isFinite(preco)||preco<=0){
+        mostrarMensagemNovoBar('Indica um preço válido.', 'error');
+        novoPrecoElement.focus();
+        return;
+      }
+
+      const params=new URLSearchParams();
+      params.append('tipo','novo_bar');
+      params.append('nome_bar',nomeBar);
+      params.append('preco_reportado',String(preco));
+      params.append('tamanho_cl','20');
+      params.append('marca_reportada',marca);
+      params.append('zona',zona);
+
+      const response=await fetch(API_URL,{
+        method:'POST',
+        body:params
+      });
+
+      if(!response.ok){
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+
+      const data=await response.json();
+
+      if(!data.sucesso){
+        throw new Error(data.erro||'Não foi possível submeter o bar.');
+      }
+
+      return data;
     }
 
     async function carregarBares(){
@@ -504,6 +695,50 @@
       mostrarFiltrosElement.setAttribute('aria-expanded',aberto);
       mostrarFiltrosElement.textContent=aberto?'Fechar filtros':'Filtros';
       setTimeout(()=>map.invalidateSize(),50);
+    });
+
+    mostrarNovoBarElement.addEventListener('click',()=>{
+      const aberto=newBarPanelElement.classList.toggle('open');
+      newBarPanelElement.setAttribute('aria-hidden',String(!aberto));
+      mostrarNovoBarElement.setAttribute('aria-expanded',aberto);
+      mostrarNovoBarElement.textContent=aberto?'Fechar formulário':'+ Adicionar um bar';
+      if(aberto){
+        limparMensagemNovoBar();
+        setTimeout(()=>novoNomeBarElement.focus(),50);
+      }
+      setTimeout(()=>map.invalidateSize(),50);
+    });
+
+    newBarFormElement.addEventListener('submit',async event=>{
+      event.preventDefault();
+
+      const submitButton=newBarFormElement.querySelector('.submit-new-bar');
+      submitButton.disabled=true;
+      limparMensagemNovoBar();
+
+      try{
+        await enviarNovaSubmissao();
+
+        mostrarMensagemNovoBar(
+          '✓ Obrigado! O bar foi submetido e ficará pendente de validação.',
+          'success'
+        );
+
+        newBarFormElement.reset();
+        novoZonaElement.value='';
+      }catch(error){
+        console.error('Erro ao submeter novo bar:',error);
+        mostrarMensagemNovoBar(
+          'Não foi possível enviar o bar. Tenta novamente.',
+          'error'
+        );
+      }finally{
+        submitButton.disabled=false;
+      }
+    });
+
+    novoPrecoElement.addEventListener('keydown',event=>{
+      if(event.key===','||event.key==='.')return;
     });
 
     precoMaxElement.addEventListener('input',mostrarBares);
