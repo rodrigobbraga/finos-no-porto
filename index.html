@@ -137,9 +137,15 @@
         .replace(/'/g,'&#039;');
     }
 
+    function toFiniteNumberOrNull(value){
+      if(value===null||value===undefined||value==='')return null;
+      const number=Number(value);
+      return Number.isFinite(number)?number:null;
+    }
+
     function formatPrice(price){
-      const number=Number(price);
-      if(!Number.isFinite(number))return 'Preço não disponível';
+      const number=toFiniteNumberOrNull(price);
+      if(number===null)return 'Preço não disponível';
       return number.toLocaleString('pt-PT',{
         style:'currency',
         currency:'EUR'
@@ -147,20 +153,62 @@
     }
 
     function formatPricePerLiter(price){
-      const number=Number(price);
-      if(!Number.isFinite(number))return '';
+      const number=toFiniteNumberOrNull(price);
+      if(number===null||number<=0)return '';
       return number.toLocaleString('pt-PT',{
         style:'currency',
         currency:'EUR'
       })+'/L';
     }
 
-    function daysSince(dateValue){
+    function parseDateValue(dateValue){
       if(!dateValue)return null;
-      const date=new Date(dateValue);
-      if(Number.isNaN(date.getTime()))return null;
+
+      const text=String(dateValue).trim();
+      const dateOnlyMatch=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+      if(dateOnlyMatch){
+        const year=Number(dateOnlyMatch[1]);
+        const month=Number(dateOnlyMatch[2]);
+        const day=Number(dateOnlyMatch[3]);
+        const localDate=new Date(year,month-1,day);
+
+        if(
+          localDate.getFullYear()!==year||
+          localDate.getMonth()!==month-1||
+          localDate.getDate()!==day
+        ){
+          return null;
+        }
+
+        return localDate;
+      }
+
+      const parsed=new Date(text);
+      return Number.isNaN(parsed.getTime())?null:parsed;
+    }
+
+    function daysSince(dateValue){
+      const date=parseDateValue(dateValue);
+      if(!date)return null;
+
+      // Comparamos dias de calendário locais, evitando problemas de UTC/DST.
+      const targetDay=new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+      );
+
       const now=new Date();
-      return Math.floor((now.getTime()-date.getTime())/(1000*60*60*24));
+      const today=new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
+
+      return Math.round(
+        (today.getTime()-targetDay.getTime())/(1000*60*60*24)
+      );
     }
 
     function formatUpdatedText(dateValue){
@@ -173,14 +221,14 @@
     }
 
     function createPriceIcon(price){
-      const number=Number(price);
-      const text=Number.isFinite(number)
-        ? number.toLocaleString('pt-PT',{
+      const number=toFiniteNumberOrNull(price);
+      const text=number===null
+        ? '—'
+        : number.toLocaleString('pt-PT',{
             style:'currency',
             currency:'EUR',
             minimumFractionDigits:2
-          })
-        : '—';
+          });
 
       return L.divIcon({
         className:'',
@@ -338,7 +386,8 @@
       const morada=escapeHtml(bar.morada);
       const zona=escapeHtml(bar.zona);
       const preco=formatPrice(bar.preco_fino);
-      const tamanho=Number(bar.tamanho_cl);
+      const tamanho=toFiniteNumberOrNull(bar.tamanho_cl);
+      const tamanhoTexto=tamanho===null ? 'Tamanho não disponível' : `${tamanho} cl`;
       const precoLitro=formatPricePerLiter(bar.preco_litro);
       const atualizado=formatUpdatedText(bar.atualizado_em);
       const googleMapsUrl=createGoogleMapsUrl(bar);
@@ -347,7 +396,7 @@
         <div class="popup">
           <div class="popup-title">${nome}</div>
           <div class="popup-price">${preco}</div>
-          <div class="popup-info">${tamanho} cl · ${marca}</div>
+          <div class="popup-info">${tamanhoTexto} · ${marca}</div>
           <div class="popup-info">${precoLitro}</div>
           <div class="popup-info">${morada}</div>
           <div class="popup-info">${zona}</div>
@@ -399,10 +448,11 @@
       const zonaSelecionada=zonaElement.value;
 
       return todosOsBares.filter(bar=>{
-        const preco=Number(bar.preco_fino);
+        const preco=toFiniteNumberOrNull(bar.preco_fino);
 
         if(precoMax!==null&&Number.isFinite(precoMax)){
-          if(!Number.isFinite(preco)||preco>precoMax)return false;
+          // Bares sem preço não entram num filtro de preço máximo.
+          if(preco===null||preco>precoMax)return false;
         }
 
         if(zonaSelecionada&&String(bar.zona)!==zonaSelecionada){
@@ -519,3 +569,4 @@
   </script>
 </body>
 </html>
+
