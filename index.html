@@ -301,12 +301,6 @@
       return `https://www.google.com/maps/search/?api=1&query=${query}&query_place_id=${encodeURIComponent(placeId)}`;
     }
 
-    function verificarVersaoApi(data){
-      if(data && data.versao_api!==EXPECTED_API_VERSION){
-        throw new Error('A API ainda não está atualizada. Publica uma nova versão do Web App no Google Apps Script.');
-      }
-    }
-
     async function enviarFeedback(barId,tamanho,tipo,precoReportado=null){
       const params=new URLSearchParams();
       params.append('bar_id',String(barId));
@@ -327,8 +321,6 @@
       }
 
       const data=await response.json();
-
-      verificarVersaoApi(data);
 
       if(!data.sucesso){
         throw new Error(data.erro||'Não foi possível enviar o feedback.');
@@ -656,8 +648,6 @@
 
       const data=await response.json();
 
-      verificarVersaoApi(data);
-
       if(!data.sucesso){
         throw new Error(data.erro||'Não foi possível submeter o bar.');
       }
@@ -680,10 +670,6 @@
 
         if(!data.sucesso){
           throw new Error(data.erro||'A API devolveu um erro.');
-        }
-
-        if(data.versao_api!==EXPECTED_API_VERSION){
-          console.warn('A API publicada não é a versão esperada:',data.versao_api);
         }
 
         if(!Array.isArray(data.bares)){
