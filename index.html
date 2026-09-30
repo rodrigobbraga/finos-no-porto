@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-  <link rel="icon" type="image/png" href="logo_site.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finos no Porto</title>
@@ -157,7 +156,6 @@
       <button class="action-button primary submit-new-bar" type="submit">Enviar</button>
     </form>
 
-    <p class="form-note">Nesta fase, todos os finos submetidos são considerados de 20 cl.</p>
     <div id="newBarMessage" class="submit-message" role="status" aria-live="polite"></div>
   </section>
 
@@ -730,7 +728,7 @@
       }catch(error){
         console.error('Erro ao submeter novo bar:',error);
         mostrarMensagemNovoBar(
-          'Não foi possível enviar o bar. Tenta novamente.',
+          error.message || 'Não foi possível enviar o bar. Tenta novamente.',
           'error'
         );
       }finally{
