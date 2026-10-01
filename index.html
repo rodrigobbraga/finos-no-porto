@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finos no Porto</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxMQ1e2xX3g1Jk0uK5JQxwW3H8Y5R8x7V6Q6V6M5Y="
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin="">
   <style>
     *{box-sizing:border-box}
@@ -119,12 +119,14 @@
       <label for="precoMax">Preço máximo</label>
       <input id="precoMax" type="number" min="0" step="0.10" placeholder="Ex.: 1,50">
     </div>
+
     <div class="filter-group">
       <label for="zona">Zona</label>
       <select id="zona">
         <option value="">Todas as zonas</option>
       </select>
     </div>
+
     <button id="limparFiltros" class="reset-button" type="button">Limpar filtros</button>
   </div>
 
@@ -357,6 +359,7 @@
 
     async function enviarFeedback(barId,tamanho,tipo,precoReportado=null){
       const params=new URLSearchParams();
+
       params.append('bar_id',String(barId));
       params.append('tamanho_cl',String(tamanho));
       params.append('tipo',tipo);
@@ -377,7 +380,9 @@
       const data=await response.json();
 
       if(!data.sucesso){
-        throw new Error(data.erro||'Não foi possível enviar o feedback.');
+        throw new Error(
+          data.erro||'Não foi possível enviar o feedback.'
+        );
       }
 
       return data;
@@ -425,15 +430,20 @@
           fecharPopupAutomaticamente();
         }catch(error){
           console.error('Erro ao confirmar preço:',error);
+
           yesButton.disabled=false;
           noButton.disabled=false;
-          mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+
+          mostrarMensagem(
+            'Não foi possível enviar. Tenta novamente.'
+          );
         }
       });
 
       noButton.addEventListener('click',()=>{
         noButton.disabled=true;
         form.classList.add('open');
+
         input.focus();
       });
 
@@ -466,17 +476,27 @@
 
           yesButton.disabled=true;
           noButton.disabled=true;
+
           form.classList.remove('open');
 
-          mostrarMensagem('✓ Obrigado! Vamos verificar o novo preço.');
+          mostrarMensagem(
+            '✓ Obrigado! Vamos verificar o novo preço.'
+          );
 
           fecharPopupAutomaticamente();
         }catch(error){
-          console.error('Erro ao enviar alteração:',error);
+          console.error(
+            'Erro ao enviar alteração:',
+            error
+          );
+
           sendButton.disabled=false;
           input.disabled=false;
           tamanhoSelect.disabled=false;
-          mostrarMensagem('Não foi possível enviar. Tenta novamente.');
+
+          mostrarMensagem(
+            'Não foi possível enviar. Tenta novamente.'
+          );
         }
       });
 
@@ -494,10 +514,20 @@
       const zona=escapeHtml(bar.zona);
       const preco=formatPrice(bar.preco_fino);
       const tamanho=toFiniteNumberOrNull(bar.tamanho_cl);
-      const tamanhoTexto=tamanho===null?'Tamanho não disponível':`${tamanho} cl`;
-      const precoLitro=formatPricePerLiter(bar.preco_litro);
-      const atualizado=formatUpdatedText(bar.atualizado_em);
-      const googleMapsUrl=createGoogleMapsUrl(bar);
+
+      const tamanhoTexto=
+        tamanho===null
+          ? 'Tamanho não disponível'
+          : `${tamanho} cl`;
+
+      const precoLitro=
+        formatPricePerLiter(bar.preco_litro);
+
+      const atualizado=
+        formatUpdatedText(bar.atualizado_em);
+
+      const googleMapsUrl=
+        createGoogleMapsUrl(bar);
 
       return `
         <div class="popup">
@@ -515,23 +545,48 @@
           }
 
           <div class="feedback">
-            <div class="feedback-question">O preço está correto?</div>
+            <div class="feedback-question">
+              O preço está correto?
+            </div>
 
             <div class="feedback-buttons">
-              <button class="feedback-button feedback-yes" type="button">Sim</button>
-              <button class="feedback-button feedback-no" type="button">Não</button>
+              <button class="feedback-button feedback-yes" type="button">
+                Sim
+              </button>
+
+              <button class="feedback-button feedback-no" type="button">
+                Não
+              </button>
             </div>
 
             <div class="feedback-form">
-              <input class="feedback-input" type="number" min="0.01" step="0.01" placeholder="Novo preço">
+              <input
+                class="feedback-input"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="Novo preço"
+              >
 
-              <select class="feedback-select" aria-label="Tamanho do fino">
+              <select
+                class="feedback-select"
+                aria-label="Tamanho do fino"
+              >
                 <option value="">Tamanho</option>
-                <option value="20" ${tamanho===20?'selected':''}>20 cl</option>
-                <option value="25" ${tamanho===25?'selected':''}>25 cl</option>
+                <option value="20" ${tamanho===20?'selected':''}>
+                  20 cl
+                </option>
+                <option value="25" ${tamanho===25?'selected':''}>
+                  25 cl
+                </option>
               </select>
 
-              <button class="feedback-send" type="button">Enviar</button>
+              <button
+                class="feedback-send"
+                type="button"
+              >
+                Enviar
+              </button>
             </div>
 
             <div class="feedback-message"></div>
@@ -547,35 +602,66 @@
           .filter(Boolean)
       )].sort((a,b)=>a.localeCompare(b,'pt'));
 
-      zonaElement.innerHTML='<option value="">Todas as zonas</option>';
-      novaZonaElement.innerHTML='<option value="">Selecionar zona</option>';
+      zonaElement.innerHTML=
+        '<option value="">Todas as zonas</option>';
+
+      novaZonaElement.innerHTML=
+        '<option value="">Selecionar zona</option>';
 
       zonas.forEach(zona=>{
         const option=document.createElement('option');
+
         option.value=zona;
         option.textContent=zona;
+
         zonaElement.appendChild(option);
 
-        const submitOption=document.createElement('option');
+        const submitOption=
+          document.createElement('option');
+
         submitOption.value=zona;
         submitOption.textContent=zona;
-        novaZonaElement.appendChild(submitOption);
+
+        novaZonaElement.appendChild(
+          submitOption
+        );
       });
     }
 
     function obterBaresFiltrados(){
-      const precoMaxTexto=precoMaxElement.value.replace(',','.');
-      const precoMax=precoMaxTexto===''?null:Number(precoMaxTexto);
-      const zonaSelecionada=zonaElement.value;
+      const precoMaxTexto=
+        precoMaxElement.value.replace(',','.');
+
+      const precoMax=
+        precoMaxTexto===''
+          ? null
+          : Number(precoMaxTexto);
+
+      const zonaSelecionada=
+        zonaElement.value;
 
       return todosOsBares.filter(bar=>{
-        const preco=toFiniteNumberOrNull(bar.preco_fino);
+        const preco=
+          toFiniteNumberOrNull(
+            bar.preco_fino
+          );
 
-        if(precoMax!==null&&Number.isFinite(precoMax)){
-          if(preco===null||preco>precoMax)return false;
+        if(
+          precoMax!==null &&
+          Number.isFinite(precoMax)
+        ){
+          if(
+            preco===null ||
+            preco>precoMax
+          ){
+            return false;
+          }
         }
 
-        if(zonaSelecionada&&String(bar.zona)!==zonaSelecionada){
+        if(
+          zonaSelecionada &&
+          String(bar.zona)!==zonaSelecionada
+        ){
           return false;
         }
 
@@ -586,46 +672,85 @@
     function mostrarBares(){
       markersLayer.clearLayers();
 
-      const baresFiltrados=obterBaresFiltrados();
+      const baresFiltrados=
+        obterBaresFiltrados();
+
       const markers=[];
 
       baresFiltrados.forEach(bar=>{
-        const latitude=Number(bar.latitude);
-        const longitude=Number(bar.longitude);
+        const latitude=
+          Number(bar.latitude);
 
-        if(!Number.isFinite(latitude)||!Number.isFinite(longitude))return;
+        const longitude=
+          Number(bar.longitude);
+
+        if(
+          !Number.isFinite(latitude) ||
+          !Number.isFinite(longitude)
+        ){
+          return;
+        }
 
         const marker=L.marker(
           [latitude,longitude],
-          {icon:createPriceIcon(bar.preco_fino)}
+          {
+            icon:createPriceIcon(
+              bar.preco_fino
+            )
+          }
         );
 
-        marker.bindPopup(createPopupContent(bar));
+        marker.bindPopup(
+          createPopupContent(bar)
+        );
 
-        marker.on('popupopen',event=>{
-          const popupElement=event.popup.getElement();
+        marker.on(
+          'popupopen',
+          event=>{
+            const popupElement=
+              event.popup.getElement();
 
-          if(popupElement){
-            configurarFeedback(popupElement,bar,marker);
+            if(popupElement){
+              configurarFeedback(
+                popupElement,
+                bar,
+                marker
+              );
+            }
           }
-        });
+        );
 
-        marker.addTo(markersLayer);
+        marker.addTo(
+          markersLayer
+        );
+
         markers.push(marker);
       });
 
       if(markers.length>0){
-        const group=L.featureGroup(markers);
+        const group=
+          L.featureGroup(markers);
 
-        map.fitBounds(group.getBounds(),{
-          padding:[40,40],
-          maxZoom:15
-        });
+        map.fitBounds(
+          group.getBounds(),
+          {
+            padding:[40,40],
+            maxZoom:15
+          }
+        );
       }else{
-        map.setView([41.1579,-8.6291],13);
+        map.setView(
+          [41.1579,-8.6291],
+          13
+        );
       }
 
-      statusElement.classList.remove('error','hidden');
+      statusElement
+        .classList
+        .remove(
+          'error',
+          'hidden'
+        );
 
       statusElement.textContent=
         baresFiltrados.length===1
@@ -633,70 +758,141 @@
           : `${baresFiltrados.length} bares encontrados`;
 
       setTimeout(()=>{
-        statusElement.classList.add('hidden');
+        statusElement
+          .classList
+          .add('hidden');
       },1500);
     }
 
     async function enviarNovaSubmissao(event){
       event.preventDefault();
 
-      const nome=novoNomeBarElement.value.trim();
-      const marca=novaMarcaElement.value.trim();
-      const precoTexto=novoPrecoElement.value.replace(',','.').trim();
-      const preco=Number(precoTexto);
-      const tamanho=Number(novoTamanhoElement.value);
-      const zona=novaZonaElement.value.trim();
+      const nome=
+        novoNomeBarElement
+          .value
+          .trim();
+
+      const marca=
+        novaMarcaElement
+          .value
+          .trim();
+
+      const precoTexto=
+        novoPrecoElement
+          .value
+          .replace(',','.')
+          .trim();
+
+      const preco=
+        Number(precoTexto);
+
+      const tamanho=
+        Number(
+          novoTamanhoElement.value
+        );
+
+      const zona=
+        novaZonaElement
+          .value
+          .trim();
 
       if(
-        !nome||
-        !marca||
-        !zona||
-        !Number.isFinite(preco)||
-        preco<=0||
+        !nome ||
+        !marca ||
+        !zona ||
+        !Number.isFinite(preco) ||
+        preco<=0 ||
         ![20,25].includes(tamanho)
       ){
-        submitMessageElement.textContent='Preenche todos os campos corretamente.';
+        submitMessageElement.textContent=
+          'Preenche todos os campos corretamente.';
+
         return;
       }
 
       enviarSubmissaoElement.disabled=true;
       cancelarSubmissaoElement.disabled=true;
-      submitMessageElement.textContent='A enviar...';
+
+      submitMessageElement.textContent=
+        'A enviar...';
 
       try{
-        const params=new URLSearchParams();
+        const params=
+          new URLSearchParams();
 
-        params.append('acao','submissao');
-        params.append('nome_bar',nome);
-        params.append('marca_reportada',marca);
-        params.append('preco_reportado',String(preco));
-        params.append('tamanho_cl',String(tamanho));
-        params.append('zona',zona);
+        params.append(
+          'acao',
+          'submissao'
+        );
 
-        const response=await fetch(API_URL,{
-          method:'POST',
-          body:params
-        });
+        params.append(
+          'nome_bar',
+          nome
+        );
+
+        params.append(
+          'marca_reportada',
+          marca
+        );
+
+        params.append(
+          'preco_reportado',
+          String(preco)
+        );
+
+        params.append(
+          'tamanho_cl',
+          String(tamanho)
+        );
+
+        params.append(
+          'zona',
+          zona
+        );
+
+        const response=
+          await fetch(
+            API_URL,
+            {
+              method:'POST',
+              body:params
+            }
+          );
 
         if(!response.ok){
-          throw new Error(`Erro HTTP ${response.status}`);
+          throw new Error(
+            `Erro HTTP ${response.status}`
+          );
         }
 
-        const data=await response.json();
+        const data=
+          await response.json();
 
         if(!data.sucesso){
-          throw new Error(data.erro||'Não foi possível enviar a submissão.');
+          throw new Error(
+            data.erro ||
+            'Não foi possível enviar a submissão.'
+          );
         }
 
-        submitMessageElement.textContent='✓ Obrigado! A submissão foi enviada para verificação.';
+        submitMessageElement.textContent=
+          '✓ Obrigado! A submissão foi enviada para verificação.';
+
         submitBarFormElement.reset();
 
         setTimeout(()=>{
           fecharFormularioSubmissao();
         },2500);
+
       }catch(error){
-        console.error('Erro ao enviar nova submissão:',error);
-        submitMessageElement.textContent='Não foi possível enviar. Tenta novamente.';
+        console.error(
+          'Erro ao enviar nova submissão:',
+          error
+        );
+
+        submitMessageElement.textContent=
+          'Não foi possível enviar. Tenta novamente.';
+
       }finally{
         enviarSubmissaoElement.disabled=false;
         cancelarSubmissaoElement.disabled=false;
@@ -704,97 +900,179 @@
     }
 
     function fecharFormularioSubmissao(){
-      submitBarFormElement.classList.remove('open');
-      mostrarSubmissaoElement.setAttribute('aria-expanded','false');
-      mostrarSubmissaoElement.textContent='Adicionar novo bar';
+      submitBarFormElement
+        .classList
+        .remove('open');
+
+      mostrarSubmissaoElement
+        .setAttribute(
+          'aria-expanded',
+          'false'
+        );
+
+      mostrarSubmissaoElement.textContent=
+        'Adicionar novo bar';
+
       submitMessageElement.textContent='';
+
       submitBarFormElement.reset();
     }
 
     async function carregarBares(){
       try{
-        statusElement.classList.remove('error','hidden');
-        statusElement.textContent='A carregar os bares...';
+        statusElement
+          .classList
+          .remove(
+            'error',
+            'hidden'
+          );
 
-        const response=await fetch(API_URL);
+        statusElement.textContent=
+          'A carregar os bares...';
+
+        const response=
+          await fetch(API_URL);
 
         if(!response.ok){
-          throw new Error(`Erro HTTP ${response.status}`);
+          throw new Error(
+            `Erro HTTP ${response.status}`
+          );
         }
 
-        const data=await response.json();
+        const data=
+          await response.json();
 
         if(!data.sucesso){
-          throw new Error(data.erro||'A API devolveu um erro.');
+          throw new Error(
+            data.erro ||
+            'A API devolveu um erro.'
+          );
         }
 
         if(!Array.isArray(data.bares)){
-          throw new Error('A resposta da API não contém uma lista de bares.');
+          throw new Error(
+            'A resposta da API não contém uma lista de bares.'
+          );
         }
 
-        todosOsBares=data.bares;
+        todosOsBares=
+          data.bares;
+
         preencherZonas();
         mostrarBares();
 
-        console.log('Dados recebidos da API:',data);
-      }catch(error){
-        console.error('Erro ao carregar os bares:',error);
+        console.log(
+          'Dados recebidos da API:',
+          data
+        );
 
-        statusElement.classList.remove('hidden');
-        statusElement.classList.add('error');
-        statusElement.textContent='Não foi possível carregar os bares. Verifica a ligação à API.';
+      }catch(error){
+        console.error(
+          'Erro ao carregar os bares:',
+          error
+        );
+
+        statusElement
+          .classList
+          .remove('hidden');
+
+        statusElement
+          .classList
+          .add('error');
+
+        statusElement.textContent=
+          'Não foi possível carregar os bares. Verifica a ligação à API.';
       }
     }
 
-    mostrarSubmissaoElement.addEventListener('click',()=>{
-      const aberto=submitBarFormElement.classList.toggle('open');
+    mostrarSubmissaoElement
+      .addEventListener(
+        'click',
+        ()=>{
+          const aberto=
+            submitBarFormElement
+              .classList
+              .toggle('open');
 
-      mostrarSubmissaoElement.setAttribute('aria-expanded',aberto);
-      mostrarSubmissaoElement.textContent=aberto?'Fechar formulário':'Adicionar novo bar';
+          mostrarSubmissaoElement
+            .setAttribute(
+              'aria-expanded',
+              aberto
+            );
 
-      if(aberto){
-        setTimeout(()=>{
-          novoNomeBarElement.focus();
-        },50);
-      }
-    });
+          mostrarSubmissaoElement.textContent=
+            aberto
+              ? 'Fechar formulário'
+              : 'Adicionar novo bar';
 
-    cancelarSubmissaoElement.addEventListener(
-      'click',
-      fecharFormularioSubmissao
-    );
+          if(aberto){
+            setTimeout(()=>{
+              novoNomeBarElement.focus();
+            },50);
+          }
+        }
+      );
 
-    submitBarFormElement.addEventListener(
-      'submit',
-      enviarNovaSubmissao
-    );
+    cancelarSubmissaoElement
+      .addEventListener(
+        'click',
+        fecharFormularioSubmissao
+      );
 
-    mostrarFiltrosElement.addEventListener('click',()=>{
-      const aberto=filtersElement.classList.toggle('open');
+    submitBarFormElement
+      .addEventListener(
+        'submit',
+        enviarNovaSubmissao
+      );
 
-      mostrarFiltrosElement.setAttribute('aria-expanded',aberto);
-      mostrarFiltrosElement.textContent=aberto?'Fechar filtros':'Filtros';
+    mostrarFiltrosElement
+      .addEventListener(
+        'click',
+        ()=>{
+          const aberto=
+            filtersElement
+              .classList
+              .toggle('open');
 
-      setTimeout(()=>{
-        map.invalidateSize();
-      },50);
-    });
+          mostrarFiltrosElement
+            .setAttribute(
+              'aria-expanded',
+              aberto
+            );
 
-    precoMaxElement.addEventListener(
-      'input',
-      mostrarBares
-    );
+          mostrarFiltrosElement.textContent=
+            aberto
+              ? 'Fechar filtros'
+              : 'Filtros';
 
-    zonaElement.addEventListener(
-      'change',
-      mostrarBares
-    );
+          setTimeout(()=>{
+            map.invalidateSize();
+          },50);
+        }
+      );
 
-    limparFiltrosElement.addEventListener('click',()=>{
-      precoMaxElement.value='';
-      zonaElement.value='';
-      mostrarBares();
-    });
+    precoMaxElement
+      .addEventListener(
+        'input',
+        mostrarBares
+      );
+
+    zonaElement
+      .addEventListener(
+        'change',
+        mostrarBares
+      );
+
+    limparFiltrosElement
+      .addEventListener(
+        'click',
+        ()=>{
+          precoMaxElement.value='';
+          zonaElement.value='';
+
+          mostrarBares();
+        }
+      );
 
     carregarBares();
   </script>
