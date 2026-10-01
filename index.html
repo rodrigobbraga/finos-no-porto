@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finos no Porto</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    integrity="sha256-p4NxMQ1e2xX3g1Jk0uK5JQxwW3H8Y5R8x7V6Q6V6M5Y="
     crossorigin="">
   <style>
     *{box-sizing:border-box}
@@ -45,7 +45,9 @@
     .feedback-form{display:none;margin-top:9px}
     .feedback-form.open{display:flex;gap:7px}
     .feedback-input{flex:1;min-width:0;height:34px;border:1px solid #ccc;border-radius:7px;padding:0 9px;font-size:13px}
+    .feedback-select{height:34px;border:1px solid #ccc;border-radius:7px;background:#fff;padding:0 8px;font-size:13px}
     .feedback-send{height:34px;border:1px solid #ccc;border-radius:7px;background:#222;color:#fff;padding:0 12px;font-size:13px;font-weight:600;cursor:pointer}
+    .feedback-send:disabled{opacity:.6;cursor:not-allowed}
     .feedback-message{display:none;margin-top:9px;font-size:12px;color:#555;font-weight:600}
     .feedback-message.visible{display:block}
     .leaflet-popup-content-wrapper{border-radius:12px}
@@ -54,7 +56,6 @@
     .price-label{position:absolute;top:0;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #bbb;border-radius:6px;padding:4px 7px;font-size:12px;font-weight:700;color:#222;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:2}
     .price-label:after{content:'';position:absolute;bottom:-5px;left:50%;width:8px;height:8px;background:#fff;border-right:1px solid #bbb;border-bottom:1px solid #bbb;transform:translateX(-50%) rotate(45deg)}
     .blue-pin{position:absolute;width:25px;height:41px;left:50%;bottom:0;transform:translateX(-50%);z-index:1}
-
     .submit-bar-toggle{padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;flex-shrink:0}
     .submit-bar-button{height:38px;border:1px solid #ccc;border-radius:8px;padding:0 14px;background:#fff;font-size:14px;cursor:pointer}
     .submit-bar-button:hover{background:#f2f2f2}
@@ -91,9 +92,9 @@
       .feedback-question{font-size:12px}
       .feedback-button{font-size:12px}
       .feedback-input{font-size:12px}
+      .feedback-select{font-size:12px}
       .feedback-send{font-size:12px}
       .price-label{font-size:11px;padding:3px 6px}
-
       .submit-bar-toggle{padding:8px 10px}
       .submit-bar-form{padding:10px}
       .submit-group{flex:1;min-width:140px}
@@ -106,7 +107,7 @@
 <body>
   <header>
     <h1>Finos no Porto</h1>
-    <p>Encontra e compara o preço dos finos no Porto</p>
+    <p>Encontra e compara finos no Porto</p>
   </header>
 
   <div class="filter-toggle">
@@ -126,7 +127,6 @@
     </div>
     <button id="limparFiltros" class="reset-button" type="button">Limpar filtros</button>
   </div>
-
 
   <div class="submit-bar-toggle">
     <button id="mostrarSubmissao" class="submit-bar-button" type="button" aria-expanded="false">Adicionar novo bar</button>
@@ -149,6 +149,15 @@
     <div class="submit-group">
       <label for="novoPreco">Preço do fino (€)</label>
       <input id="novoPreco" type="number" min="0.01" step="0.01" placeholder="Ex.: 1,50" required>
+    </div>
+
+    <div class="submit-group">
+      <label for="novoTamanho">Tamanho do fino</label>
+      <select id="novoTamanho" required>
+        <option value="">Selecionar tamanho</option>
+        <option value="20">20 cl</option>
+        <option value="25">25 cl</option>
+      </select>
     </div>
 
     <div class="submit-group">
@@ -197,8 +206,8 @@
     const novoNomeBarElement=document.getElementById('novoNomeBar');
     const novaMarcaElement=document.getElementById('novaMarca');
     const novoPrecoElement=document.getElementById('novoPreco');
+    const novoTamanhoElement=document.getElementById('novoTamanho');
     const novaZonaElement=document.getElementById('novaZona');
-
 
     let todosOsBares=[];
     let markersLayer=L.layerGroup().addTo(map);
@@ -229,6 +238,7 @@
     function formatPrice(price){
       const number=toFiniteNumberOrNull(price);
       if(number===null)return 'Preço não disponível';
+
       return number.toLocaleString('pt-PT',{
         style:'currency',
         currency:'EUR'
@@ -238,6 +248,7 @@
     function formatPricePerLiter(price){
       const number=toFiniteNumberOrNull(price);
       if(number===null||number<=0)return '';
+
       return number.toLocaleString('pt-PT',{
         style:'currency',
         currency:'EUR'
@@ -254,6 +265,7 @@
         const year=Number(dateOnlyMatch[1]);
         const month=Number(dateOnlyMatch[2]);
         const day=Number(dateOnlyMatch[3]);
+
         const localDate=new Date(year,month-1,day);
 
         if(
@@ -275,7 +287,6 @@
       const date=parseDateValue(dateValue);
       if(!date)return null;
 
-      // Comparamos dias de calendário locais, evitando problemas de UTC/DST.
       const targetDay=new Date(
         date.getFullYear(),
         date.getMonth(),
@@ -283,6 +294,7 @@
       );
 
       const now=new Date();
+
       const today=new Date(
         now.getFullYear(),
         now.getMonth(),
@@ -296,15 +308,18 @@
 
     function formatUpdatedText(dateValue){
       const days=daysSince(dateValue);
+
       if(days===null)return 'Data de atualização desconhecida';
       if(days<0)return 'Atualização futura';
       if(days===0)return 'Atualizado hoje';
       if(days===1)return 'Atualizado há 1 dia';
+
       return `Atualizado há ${days} dias`;
     }
 
     function createPriceIcon(price){
       const number=toFiniteNumberOrNull(price);
+
       const text=number===null
         ? '—'
         : number.toLocaleString('pt-PT',{
@@ -376,6 +391,7 @@
       const noButton=feedback.querySelector('.feedback-no');
       const form=feedback.querySelector('.feedback-form');
       const input=feedback.querySelector('.feedback-input');
+      const tamanhoSelect=feedback.querySelector('.feedback-select');
       const sendButton=feedback.querySelector('.feedback-send');
       const message=feedback.querySelector('.feedback-message');
 
@@ -424,19 +440,26 @@
       sendButton.addEventListener('click',async()=>{
         const preco=input.value.replace(',','.');
         const valor=Number(preco);
+        const tamanho=Number(tamanhoSelect.value);
 
         if(!Number.isFinite(valor)||valor<=0){
           input.focus();
           return;
         }
 
+        if(![20,25].includes(tamanho)){
+          tamanhoSelect.focus();
+          return;
+        }
+
         sendButton.disabled=true;
         input.disabled=true;
+        tamanhoSelect.disabled=true;
 
         try{
           await enviarFeedback(
             bar.bar_id,
-            Number(bar.tamanho_cl),
+            tamanho,
             'alteracao',
             valor
           );
@@ -452,6 +475,7 @@
           console.error('Erro ao enviar alteração:',error);
           sendButton.disabled=false;
           input.disabled=false;
+          tamanhoSelect.disabled=false;
           mostrarMensagem('Não foi possível enviar. Tenta novamente.');
         }
       });
@@ -470,7 +494,7 @@
       const zona=escapeHtml(bar.zona);
       const preco=formatPrice(bar.preco_fino);
       const tamanho=toFiniteNumberOrNull(bar.tamanho_cl);
-      const tamanhoTexto=tamanho===null ? 'Tamanho não disponível' : `${tamanho} cl`;
+      const tamanhoTexto=tamanho===null?'Tamanho não disponível':`${tamanho} cl`;
       const precoLitro=formatPricePerLiter(bar.preco_litro);
       const atualizado=formatUpdatedText(bar.atualizado_em);
       const googleMapsUrl=createGoogleMapsUrl(bar);
@@ -492,6 +516,7 @@
 
           <div class="feedback">
             <div class="feedback-question">O preço está correto?</div>
+
             <div class="feedback-buttons">
               <button class="feedback-button feedback-yes" type="button">Sim</button>
               <button class="feedback-button feedback-no" type="button">Não</button>
@@ -499,6 +524,13 @@
 
             <div class="feedback-form">
               <input class="feedback-input" type="number" min="0.01" step="0.01" placeholder="Novo preço">
+
+              <select class="feedback-select" aria-label="Tamanho do fino">
+                <option value="">Tamanho</option>
+                <option value="20" ${tamanho===20?'selected':''}>20 cl</option>
+                <option value="25" ${tamanho===25?'selected':''}>25 cl</option>
+              </select>
+
               <button class="feedback-send" type="button">Enviar</button>
             </div>
 
@@ -516,6 +548,7 @@
       )].sort((a,b)=>a.localeCompare(b,'pt'));
 
       zonaElement.innerHTML='<option value="">Todas as zonas</option>';
+      novaZonaElement.innerHTML='<option value="">Selecionar zona</option>';
 
       zonas.forEach(zona=>{
         const option=document.createElement('option');
@@ -539,7 +572,6 @@
         const preco=toFiniteNumberOrNull(bar.preco_fino);
 
         if(precoMax!==null&&Number.isFinite(precoMax)){
-          // Bares sem preço não entram num filtro de preço máximo.
           if(preco===null||preco>precoMax)return false;
         }
 
@@ -584,6 +616,7 @@
 
       if(markers.length>0){
         const group=L.featureGroup(markers);
+
         map.fitBounds(group.getBounds(),{
           padding:[40,40],
           maxZoom:15
@@ -593,6 +626,7 @@
       }
 
       statusElement.classList.remove('error','hidden');
+
       statusElement.textContent=
         baresFiltrados.length===1
           ? '1 bar encontrado'
@@ -603,7 +637,6 @@
       },1500);
     }
 
-
     async function enviarNovaSubmissao(event){
       event.preventDefault();
 
@@ -611,9 +644,17 @@
       const marca=novaMarcaElement.value.trim();
       const precoTexto=novoPrecoElement.value.replace(',','.').trim();
       const preco=Number(precoTexto);
+      const tamanho=Number(novoTamanhoElement.value);
       const zona=novaZonaElement.value.trim();
 
-      if(!nome||!marca||!zona||!Number.isFinite(preco)||preco<=0){
+      if(
+        !nome||
+        !marca||
+        !zona||
+        !Number.isFinite(preco)||
+        preco<=0||
+        ![20,25].includes(tamanho)
+      ){
         submitMessageElement.textContent='Preenche todos os campos corretamente.';
         return;
       }
@@ -624,10 +665,12 @@
 
       try{
         const params=new URLSearchParams();
+
         params.append('acao','submissao');
         params.append('nome_bar',nome);
         params.append('marca_reportada',marca);
         params.append('preco_reportado',String(preco));
+        params.append('tamanho_cl',String(tamanho));
         params.append('zona',zona);
 
         const response=await fetch(API_URL,{
@@ -696,34 +739,56 @@
         console.log('Dados recebidos da API:',data);
       }catch(error){
         console.error('Erro ao carregar os bares:',error);
+
         statusElement.classList.remove('hidden');
         statusElement.classList.add('error');
         statusElement.textContent='Não foi possível carregar os bares. Verifica a ligação à API.';
       }
     }
 
-
     mostrarSubmissaoElement.addEventListener('click',()=>{
       const aberto=submitBarFormElement.classList.toggle('open');
+
       mostrarSubmissaoElement.setAttribute('aria-expanded',aberto);
       mostrarSubmissaoElement.textContent=aberto?'Fechar formulário':'Adicionar novo bar';
+
       if(aberto){
-        setTimeout(()=>novoNomeBarElement.focus(),50);
+        setTimeout(()=>{
+          novoNomeBarElement.focus();
+        },50);
       }
     });
 
-    cancelarSubmissaoElement.addEventListener('click',fecharFormularioSubmissao);
-    submitBarFormElement.addEventListener('submit',enviarNovaSubmissao);
+    cancelarSubmissaoElement.addEventListener(
+      'click',
+      fecharFormularioSubmissao
+    );
+
+    submitBarFormElement.addEventListener(
+      'submit',
+      enviarNovaSubmissao
+    );
 
     mostrarFiltrosElement.addEventListener('click',()=>{
       const aberto=filtersElement.classList.toggle('open');
+
       mostrarFiltrosElement.setAttribute('aria-expanded',aberto);
       mostrarFiltrosElement.textContent=aberto?'Fechar filtros':'Filtros';
-      setTimeout(()=>map.invalidateSize(),50);
+
+      setTimeout(()=>{
+        map.invalidateSize();
+      },50);
     });
 
-    precoMaxElement.addEventListener('input',mostrarBares);
-    zonaElement.addEventListener('change',mostrarBares);
+    precoMaxElement.addEventListener(
+      'input',
+      mostrarBares
+    );
+
+    zonaElement.addEventListener(
+      'change',
+      mostrarBares
+    );
 
     limparFiltrosElement.addEventListener('click',()=>{
       precoMaxElement.value='';
